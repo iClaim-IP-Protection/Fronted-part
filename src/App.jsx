@@ -28,12 +28,16 @@ function App() {
         <Route path="/dashboard" element={<MainPage/>} />
           
         {/* Home Page */}
-        <Route path="/home" element={<HomePage/>}/>
+        
+        <Route path="/HomePage" element={<HomePage/>}/>
           
          <Route path="/connect-wallet" element={<ConnectSolanaWallet/>}/> 
 
         {/* Register ip */}
         <Route path="/RegisterIp" element={<RegisterIP/>}/>
+
+        
+        <Route path="/" element={<Login/>}/>
 
         <Route path="/myAssets" element={<MyAssets/>}/>
 

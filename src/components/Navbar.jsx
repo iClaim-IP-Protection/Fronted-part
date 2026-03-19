@@ -21,7 +21,7 @@ const Navbar = () => {
 
           <li>
             <Link
-              to="/home"
+              to="/HomePage"
               className="font-bold text-lg hover:text-white hover:scale-105 transform transition duration-300 ease-in-out"
             >
               Home
