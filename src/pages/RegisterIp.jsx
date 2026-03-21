@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import jsPDF from "jspdf";
 function RegisterIP() {
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
@@ -14,14 +14,71 @@ function RegisterIP() {
     if (file) setIpfsHash("QmXyz123ABC...");
   };
 
-  const handleGenerateHash = () => {
-    if (title && description && ipfsHash) setMetadataHash("0xHASHXYZ123...");
+
+  const generateHash = async (data) => {
+    const encoder = new TextEncoder();
+    const encodedData = encoder.encode(JSON.stringify(data));
+  
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encodedData);
+  
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  
+    return hashHex;
+  };
+  
+  const handleGenerateHash = async () => {
+    if (!title || !description || !ipfsHash) {
+      alert("Please complete all fields first!");
+      return;
+    }
+  
+    const metadata = {
+      title,
+      description,
+      ipfsHash,
+      owner: localStorage.getItem("wallet"),
+      timestamp: new Date().toISOString(),
+    };
+  
+    const hash = await generateHash(metadata);
+  
+    setMetadataHash(hash);
+  };
+
+  const generateCertificate = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(18);
+    doc.text("Intellectual Property Certificate", 20, 20);
+  
+    doc.setFontSize(12);
+    doc.text(`Title: ${title}`, 20, 40);
+    doc.text(`Description: ${description}`, 20, 50);
+    doc.text(`Owner Wallet: ${localStorage.getItem("wallet")}`, 20, 60);
+    doc.text(`IPFS Hash: ${ipfsHash}`, 20, 70);
+    doc.text(`Metadata Hash: ${metadataHash}`, 20, 80);
+    doc.text(`Date: ${new Date().toLocaleString()}`, 20, 90);
+  
+    doc.save("IP_Certificate.pdf");
   };
 
   const handleRegister = () => {
-    if (file && title && description && ipfsHash && metadataHash) setShowPopup(true);
-    else alert("Please complete all steps!");
+    if (file && title && description && ipfsHash && metadataHash) {
+      setShowPopup(true);
+  
+      // ✅ Generate certificate
+      generateCertificate();
+  
+    } else {
+      alert("Please complete all steps!");
+    }
   };
+
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200 p-6">
@@ -41,6 +98,7 @@ function RegisterIP() {
     <span className="text-gray-500 mb-2">or click to select a file</span>
     <input
       type="file"
+      accept=".pdf"
       onChange={(e) => setFile(e.target.files[0])}
       className="hidden" // hide the default input
     />
