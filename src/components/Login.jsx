@@ -1,23 +1,29 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authAPI } from "../services/api";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Dummy validation
-    const dummyEmail = "sneha@gmail.com";
-    const dummyPassword = "sneha";
-
-    if (email === dummyEmail && password === dummyPassword) {
-      
-      navigate("/HomePage"); 
-    } else {
-      alert("Invalid email or password!");
+    try {
+      const response = await authAPI.login(email, password);
+      // Store username in localStorage for later use
+      if (response.username) {
+        localStorage.setItem('username', response.username);
+      }
+      alert("Login successful!");
+      navigate("/HomePage");
+    } catch (error) {
+      alert(`Login failed: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,8 +47,12 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-cyan-500 placeholder-gray-400"
         />
-        <button className="w-full p-3 bg-blue-400 text-white rounded-full text-lg font-medium hover:bg-blue-500 transition">
-          Login
+        <button 
+          type="submit"
+          disabled={loading}
+          className={`w-full p-3 ${loading ? 'bg-gray-400' : 'bg-blue-400 hover:bg-blue-500'} text-white rounded-full text-lg font-medium transition`}
+        >
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
       <p className="text-center text-gray-600 mt-4">
