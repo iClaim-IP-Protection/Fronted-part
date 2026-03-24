@@ -85,6 +85,10 @@ export const authAPI = {
     removeToken();
   },
 
+  getCurrentUser: async () => {
+    return await apiCall('/api/user/me', { method: 'GET' });
+  },
+
   getToken,
   isAuthenticated: () => !!getToken(),
 };

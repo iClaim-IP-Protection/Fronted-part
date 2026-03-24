@@ -15,9 +15,9 @@ function Login() {
     try {
       const response = await authAPI.login(email, password);
       // Store username in localStorage for later use
-      if (response.username) {
-        localStorage.setItem('username', response.username);
-      }
+      // if (response.username) {
+      // localStorage.setItem('username', response.username);
+      // }
       // alert("Login successful!");
       navigate("/HomePage");
     } catch (error) {
