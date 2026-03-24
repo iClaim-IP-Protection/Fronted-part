@@ -120,8 +120,8 @@ export const profileAPI = {
 
 // Dashboard Endpoints
 export const dashboardAPI = {
-  getDashboard: async () => {
-    return await apiCall(`/api/dashboard/me`, { method: 'GET' });
+  getDashboard: async (username) => {
+    return await apiCall(`/api/dashboard/${username}`, { method: 'GET' });
   },
 };
 
