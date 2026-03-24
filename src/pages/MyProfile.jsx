@@ -8,13 +8,13 @@ function MyProfile() {
   
   // Dummy user data
   const [user, setUser] = useState({
-    name: "Sneha Thapa",
-    username: "sneha123",
-    email: "sneha@gmail.com",
-    wallet: "0xABC123...",
+    name: "",
+    username: "",
+    email: "",
+    wallet: "",
     password: "*********",
-    totalArticles: 10,
-    certificates: 5,
+    totalArticles: "",
+    certificates: ""
   });
 
   const [editMode, setEditMode] = useState(false);
