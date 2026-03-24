@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { dashboardAPI, authAPI } from "../services/api";
 
-function HomePage() {
+function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -216,4 +216,4 @@ function HomePage() {
   );
 }
 
-export default HomePage;
+export default Dashboard;

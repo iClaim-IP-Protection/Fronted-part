@@ -19,7 +19,7 @@ function Login() {
       // localStorage.setItem('username', response.username);
       // }
       // alert("Login successful!");
-      navigate("/HomePage");
+      navigate("/dashboard");
     } catch (error) {
       alert(`Login failed: ${error.message}`);
     } finally {
@@ -58,7 +58,7 @@ function Login() {
       <p className="text-center text-gray-600 mt-4">
         Don't have an account?{" "}
         <span
-          onClick={() => navigate("/Signup")}
+          onClick={() => navigate("/signup")}
           className="text-cyan-600 hover:underline cursor-pointer"
         >
           Signup now

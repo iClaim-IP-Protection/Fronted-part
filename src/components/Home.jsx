@@ -2,7 +2,7 @@ import React from "react";
 import Navbar from "./Navbar";
 import { useNavigate } from "react-router-dom";
 
-function MainPage() {
+function Home() {
   const navigate = useNavigate();
 
   return (
@@ -38,4 +38,4 @@ function MainPage() {
   );
 }
 
-export default MainPage;
+export default Home;

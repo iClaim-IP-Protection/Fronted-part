@@ -1,13 +1,13 @@
 import {BrowserRouter, Route, Routes} from "react-router-dom"
 import React, { useState } from "react";
-import MainPage from "./components/MainPage";
-import HomePage from "./pages/HomePage";
+import Dashboard from "./pages/Dashboard";
 import RegisterIP from "./pages/RegisterIp";
 import Login from "./components/Login";
-import Signup from "./components/SignUp";
+import Signup from "./components/Signup";
 import MyAssets from "./pages/MyAssets";
 import MyProfile from "./pages/MyProfile";
 import ConnectSolanaWallet from "./pages/ConnectSolanaWallet";
+import Home from "./components/Home";
 
 
 function App() {
@@ -25,11 +25,11 @@ function App() {
          
 
         {/* Dashboard (MainPage) */}
-        <Route path="/dashboard" element={<MainPage/>} />
+        <Route path="/home" element={<Home/>} />
           
         {/* Home Page */}
         
-        <Route path="/HomePage" element={<HomePage/>}/>
+        <Route path="/dashboard" element={<Dashboard/>}/>
           
          <Route path="/connect-wallet" element={<ConnectSolanaWallet/>}/> 
 
