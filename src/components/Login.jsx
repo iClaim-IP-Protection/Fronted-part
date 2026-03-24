@@ -18,7 +18,7 @@ function Login() {
       if (response.username) {
         localStorage.setItem('username', response.username);
       }
-      alert("Login successful!");
+      // alert("Login successful!");
       navigate("/HomePage");
     } catch (error) {
       alert(`Login failed: ${error.message}`);
