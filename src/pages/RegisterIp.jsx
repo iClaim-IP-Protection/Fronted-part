@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
+import CryptoJS from "crypto-js";
 import { authAPI, profileAPI } from "../services/api";
 
 function RegisterIP() {
@@ -48,16 +49,32 @@ function RegisterIP() {
       setError("Please select a file first");
       return;
     }
-
+  
     setLoading(true);
     setError(null);
-
+  
     try {
-      // Create FormData for file upload
+      // 1. Read the PDF file as ArrayBuffer
+      const fileArrayBuffer = await file.arrayBuffer();
+  
+      // 2. Convert to WordArray (CryptoJS format)
+      const wordArray = CryptoJS.lib.WordArray.create(fileArrayBuffer);
+  
+      // 3. Encrypt the file with AES
+      const secretKey = "my-secret-key"; // key
+      const encrypted = CryptoJS.AES.encrypt(wordArray, secretKey).toString();
+  
+      // 4. Store encrypted PDF in localStorage
+      localStorage.setItem("encryptedPDF", encrypted);
+  
+      // 5. Convert encrypted string back to Blob for IPFS upload
+      const encryptedBlob = new Blob([encrypted], { type: "application/pdf" });
+  
+      // 6. Prepare FormData for IPFS upload
       const formData = new FormData();
-      formData.append("file", file);
-
-      // Call backend IPFS upload endpoint
+      formData.append("file", encryptedBlob, file.name);
+  
+      // 7. Upload to IPFS (same as your backend call)
       const response = await fetch("http://localhost:8000/api/ipfs/upload", {
         method: "POST",
         headers: {
@@ -66,15 +83,15 @@ function RegisterIP() {
         body: formData,
         credentials: "include",
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || "Failed to upload file to IPFS");
       }
-
+  
       const data = await response.json();
       setIpfsHash(data.ipfs_hash);
-      alert("File uploaded to IPFS successfully!");
+      alert("PDF encrypted & uploaded to IPFS successfully!");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to upload file";
       setError(errorMessage);

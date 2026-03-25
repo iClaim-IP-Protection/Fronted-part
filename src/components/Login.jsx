@@ -15,11 +15,11 @@ function Login() {
     try {
       const response = await authAPI.login(email, password);
       // Store username in localStorage for later use
-      // if (response.username) {
-      // localStorage.setItem('username', response.username);
-      // }
+      if (response.username) {
+        localStorage.setItem('username', response.username);
+      }
       // alert("Login successful!");
-      navigate("/dashboard");
+      navigate("/HomePage");
     } catch (error) {
       alert(`Login failed: ${error.message}`);
     } finally {
@@ -58,7 +58,7 @@ function Login() {
       <p className="text-center text-gray-600 mt-4">
         Don't have an account?{" "}
         <span
-          onClick={() => navigate("/signup")}
+          onClick={() => navigate("/Signup")}
           className="text-cyan-600 hover:underline cursor-pointer"
         >
           Signup now
