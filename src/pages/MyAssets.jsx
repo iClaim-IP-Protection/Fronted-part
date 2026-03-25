@@ -1,7 +1,7 @@
 // MyAssets.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { assetsAPI } from "../services/api";
+import { assetsAPI, authAPI } from "../services/api";
 
 function MyAssets() {
   const navigate = useNavigate();
@@ -12,17 +12,33 @@ function MyAssets() {
   useEffect(() => {
     const fetchAssets = async () => {
       try {
-        const username = localStorage.getItem('username');
-        if (!username) {
-          alert("Please log in first");
+        // Check authentication first
+        if (!authAPI.isAuthenticated()) {
           navigate("/login");
           return;
         }
-        const data = await assetsAPI.getUserAssets(username);
-        setAssets(data.assets || []);
+
+        // Fetch current user from API
+        const userInfo = await authAPI.getCurrentUser();
+        if (!userInfo || !userInfo.username) {
+          setError("Unable to retrieve user information");
+          navigate("/login");
+          return;
+        }
+
+        // Fetch assets for the logged-in user
+        const data = await assetsAPI.getUserAssets(userInfo.username);
+        setAssets(data.assets || data || []);
+        setError(null);
       } catch (err) {
-        setError(err.message);
-        alert(`Failed to fetch assets: ${err.message}`);
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch assets";
+        setError(errorMessage);
+        console.error("Error fetching assets:", err);
+        
+        // Only redirect to login for auth errors
+        if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
+          navigate("/login");
+        }
       } finally {
         setLoading(false);
       }

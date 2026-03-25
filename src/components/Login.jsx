@@ -19,7 +19,7 @@ function Login() {
         localStorage.setItem('username', response.username);
       }
       // alert("Login successful!");
-      navigate("/HomePage");
+      navigate("/dashboard");
     } catch (error) {
       alert(`Login failed: ${error.message}`);
     } finally {

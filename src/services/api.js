@@ -86,7 +86,7 @@ export const authAPI = {
   },
 
   getCurrentUser: async () => {
-    return await apiCall('/api/user/me', { method: 'GET' });
+    return await apiCall('/api/profile/me', { method: 'GET' });
   },
 
   getToken,
@@ -96,7 +96,7 @@ export const authAPI = {
 // Assets Endpoints
 export const assetsAPI = {
   getAsset: async (assetId) => {
-    return await apiCall(`/api/assets/${assetId}`, { method: 'GET' });
+    return await apiCall(`/api/assets/me`, { method: 'GET' });
   },
 
   getUserAssets: async (username) => {
@@ -121,7 +121,7 @@ export const profileAPI = {
 // Dashboard Endpoints
 export const dashboardAPI = {
   getDashboard: async (username) => {
-    return await apiCall(`/api/dashboard/${username}`, { method: 'GET' });
+    return await apiCall(`/api/dashboard/me`, { method: 'GET' });
   },
 };
 

@@ -5,16 +5,16 @@ import { profileAPI, authAPI } from "../services/api";
 function MyProfile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Dummy user data
+  // User data from API
   const [user, setUser] = useState({
     name: "",
     username: "",
     email: "",
     wallet: "",
-    password: "*********",
-    totalArticles: "",
-    certificates: ""
+    totalArticles: 0,
+    certificates: 0
   });
 
   const [editMode, setEditMode] = useState(false);
@@ -26,23 +26,51 @@ function MyProfile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState(null);
 
   // Fetch profile data on component mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const username = localStorage.getItem('username');
-        if (!username) {
-          alert("Please log in first");
+        // Check authentication
+        if (!authAPI.isAuthenticated()) {
           navigate("/login");
           return;
         }
-        const data = await profileAPI.getProfile(username);
-        setUser(data);
-        setFormData(data);
-      } catch (error) {
-        console.error('Failed to fetch profile:', error.message);
-        // Keep using dummy data if API fails
+
+        // Fetch current user info
+        const userInfo = await authAPI.getCurrentUser();
+        if (!userInfo || !userInfo.username) {
+          setError("Unable to retrieve user information");
+          navigate("/login");
+          return;
+        }
+
+        // Fetch profile data from database
+        const profileData = await profileAPI.getProfile(userInfo.username);
+        
+        // Normalize profile data
+        const normalizedUser = {
+          name: `${profileData.first_name || ""} ${profileData.last_name || ""}`.trim(),
+          username: userInfo.username,
+          email: profileData.email || "",
+          wallet: profileData.wallet_address || "Not connected",
+          totalArticles: profileData.total_articles || 0,
+          certificates: profileData.certificates_issued || 0
+        };
+
+        setUser(normalizedUser);
+        setFormData(normalizedUser);
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch profile";
+        setError(errorMessage);
+        console.error("Error fetching profile:", err);
+        
+        // Only redirect to login for auth errors
+        if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
+          navigate("/login");
+        }
       } finally {
         setLoading(false);
       }
@@ -60,36 +88,98 @@ function MyProfile() {
   // Save updated profile
   const handleSave = async () => {
     setSaving(true);
+    setError(null);
     try {
-      const username = localStorage.getItem('username');
-      await profileAPI.updateProfile(username, formData);
+      // Fetch current user
+      const userInfo = await authAPI.getCurrentUser();
+      if (!userInfo || !userInfo.username) {
+        throw new Error("Unable to retrieve user information");
+      }
+
+      // Prepare update data
+      const updateData = {
+        first_name: formData.name.split(" ")[0] || formData.name,
+        last_name: formData.name.split(" ").slice(1).join(" ") || "",
+        email: formData.email,
+      };
+
+      // Call update API
+      await profileAPI.updateProfile(userInfo.username, updateData);
       setUser(formData);
       setEditMode(false);
-      alert("Profile updated successfully!");
+      alert("✅ Profile updated successfully!");
     } catch (error) {
-      alert(`Failed to update profile: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : "Failed to update profile";
+      setError(errorMessage);
+      alert(`❌ Failed to update profile: ${errorMessage}`);
     } finally {
       setSaving(false);
     }
   };
 
   // Handle password change
-  const handlePasswordChange = () => {
-    if (newPassword !== confirmPassword) {
-      alert("New password and confirm password do not match!");
+  const handlePasswordChange = async () => {
+    setPasswordError(null);
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("All password fields are required");
       return;
     }
-    // TODO: Call API to update password
-    alert("Password changed successfully!");
-    setShowPasswordModal(false);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirm password do not match!");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError("New password must be at least 6 characters long");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Fetch current user
+      const userInfo = await authAPI.getCurrentUser();
+      if (!userInfo || !userInfo.username) {
+        throw new Error("Unable to retrieve user information");
+      }
+
+      // Call password change API
+      const response = await fetch("http://localhost:8000/api/auth/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authAPI.getToken()}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to change password");
+      }
+
+      alert("✅ Password changed successfully!");
+      setShowPasswordModal(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordError(null);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to change password";
+      setPasswordError(errorMessage);
+      console.error("Password change error:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogout = () => {
     authAPI.logout();
-    localStorage.removeItem('username');
     alert("Logged out successfully!");
     navigate("/login");
   };
@@ -99,6 +189,14 @@ function MyProfile() {
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-8 space-y-6">
         {/* Header */}
         <h1 className="text-3xl font-bold text-blue-600 text-center">My Profile</h1>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-800 p-4 rounded-lg">
+            <p className="font-semibold">Error</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center text-gray-500 py-10">
@@ -174,7 +272,7 @@ function MyProfile() {
                   type="text"
                   value={user.wallet}
                   disabled
-                  className="w-full p-2 mt-1 rounded border bg-blue-100 cursor-not-allowed"
+                  className="w-full p-2 mt-1 rounded border bg-blue-100 cursor-not-allowed font-mono text-sm"
                 />
               </div>
             </div>
@@ -182,7 +280,7 @@ function MyProfile() {
             {/* Security Section */}
             <div className="p-4 border rounded-xl bg-blue-50 flex justify-between items-center">
               <div>
-                <p className="text-gray-700 font-medium">Password: {user.password}</p>
+                <p className="text-gray-700 font-medium">Password: ••••••••</p>
               </div>
               <button
                 onClick={() => setShowPasswordModal(true)}
@@ -231,37 +329,56 @@ function MyProfile() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-96 shadow-2xl">
             <h2 className="text-2xl font-bold text-blue-600 mb-4 text-center">Change Password</h2>
+            
+            {/* Error Message */}
+            {passwordError && (
+              <div className="bg-red-100 border border-red-400 text-red-800 p-3 rounded-lg mb-4">
+                <p className="text-sm">{passwordError}</p>
+              </div>
+            )}
+
             <input
               type="password"
               placeholder="Current Password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full p-3 mb-3 border rounded-lg focus:ring-2 focus:ring-blue-300 outline-none"
+              disabled={saving}
+              className="w-full p-3 mb-3 border rounded-lg focus:ring-2 focus:ring-blue-300 outline-none disabled:bg-gray-100"
             />
             <input
               type="password"
               placeholder="New Password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full p-3 mb-3 border rounded-lg focus:ring-2 focus:ring-blue-300 outline-none"
+              disabled={saving}
+              className="w-full p-3 mb-3 border rounded-lg focus:ring-2 focus:ring-blue-300 outline-none disabled:bg-gray-100"
             />
             <input
               type="password"
               placeholder="Confirm New Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-3 mb-4 border rounded-lg focus:ring-2 focus:ring-blue-300 outline-none"
+              disabled={saving}
+              className="w-full p-3 mb-4 border rounded-lg focus:ring-2 focus:ring-blue-300 outline-none disabled:bg-gray-100"
             />
             <div className="flex justify-center gap-4">
               <button
                 onClick={handlePasswordChange}
-                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
+                disabled={saving}
+                className={`${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'} text-white px-6 py-2 rounded-lg transition`}
               >
-                Save
+                {saving ? "Saving..." : "Save"}
               </button>
               <button
-                onClick={() => setShowPasswordModal(false)}
-                className="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition"
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordError(null);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                }}
+                disabled={saving}
+                className="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
