@@ -8,6 +8,8 @@ import MyAssets from "./pages/MyAssets";
 import MyProfile from "./pages/MyProfile";
 import ConnectSolanaWallet from "./pages/ConnectSolanaWallet";
 import Home from "./components/Home";
+import AssetInfo from "./pages/AssetInfo";
+import EditAsset from "./pages/EditAsset";
 
 
 function App() {
@@ -38,9 +40,13 @@ function App() {
         <Route path="/registerip" element={<RegisterIP/>}/>
 
         
-        <Route path="/" element={<Login/>}/>
+        <Route path="/edit-asset/:assetId" element={<EditAsset/>}/>
 
         <Route path="/assets" element={<MyAssets/>}/>
+
+        <Route path="/assets/:assetId" element={<AssetInfo/>}/>
+
+        <Route path="/" element={<MyAssets/>}/>
 
         <Route path="/profile" element={<MyProfile/>}/>
 

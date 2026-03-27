@@ -135,6 +135,38 @@ export const assetsAPI = {
   getAssets: async () => {
     return await apiCall(`/api/ipfs/assets`, { method: 'GET' });
   },
+
+  getAssetInfo: async (assetId) => {
+    return await apiCall(`/api/ipfs/${assetId}`, { method: 'GET' });
+  },
+
+  updateAsset: async (assetId, updateData) => {
+    const formData = new FormData();
+    if (updateData.title) formData.append('title', updateData.title);
+    if (updateData.version !== undefined) formData.append('version', updateData.version);
+    if (updateData.previous_asset_id !== undefined) formData.append('previous_asset_id', updateData.previous_asset_id);
+
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/api/ipfs/${assetId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update asset');
+    }
+
+    return await response.json();
+  },
+
+  deleteAsset: async (assetId) => {
+    return await apiCall(`/api/ipfs/${assetId}`, { method: 'DELETE' });
+  },
 };
 
 // Profile Endpoints
