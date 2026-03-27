@@ -96,6 +96,14 @@ function Dashboard() {
           </li>
           <li>
             <Link
+              to="/connect-wallet"
+              className="cursor-pointer hover:text-blue-300 transition"
+            >
+              Connect Wallet
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/registerIp"
               className="cursor-pointer hover:text-blue-300 transition"
             >
@@ -104,7 +112,7 @@ function Dashboard() {
           </li>
           <li>
             <Link
-              to="/myAssets"
+              to="/assets"
               className="cursor-pointer hover:text-blue-300 transition"
             >
               My Assets

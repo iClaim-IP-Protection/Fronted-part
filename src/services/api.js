@@ -95,12 +95,45 @@ export const authAPI = {
 
 // Assets Endpoints
 export const assetsAPI = {
-  getAsset: async (assetId) => {
-    return await apiCall(`/api/assets/me`, { method: 'GET' });
+  uploadAsset: async (formData) => {
+    // Special handling for FormData - don't set Content-Type header
+    const token = getToken();
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/ipfs/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP Error: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // Ignore JSON parsing errors
+      }
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
   },
 
-  getUserAssets: async (username) => {
-    return await apiCall(`/api/assets/${username}`, { method: 'GET' });
+  // getAsset: async (assetId) => {
+  //   return await apiCall(`/api/assets/me`, { method: 'GET' });
+  // },
+
+  // getUserAssets: async (username) => {
+  //   return await apiCall(`/api/assets/${username}`, { method: 'GET' });
+  // },
+
+  getAssets: async () => {
+    return await apiCall(`/api/ipfs/assets`, { method: 'GET' });
   },
 };
 

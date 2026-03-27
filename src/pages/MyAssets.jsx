@@ -27,7 +27,7 @@ function MyAssets() {
         }
 
         // Fetch assets for the logged-in user
-        const data = await assetsAPI.getUserAssets(userInfo.username);
+        const data = await assetsAPI.getAssets();
         setAssets(data.assets || data || []);
         setError(null);
       } catch (err) {
@@ -47,12 +47,7 @@ function MyAssets() {
     fetchAssets();
   }, [navigate]);
 
-  // Function to style status badges
-  const getStatusColor = (status) => {
-    if (status === "Verified") return "bg-green-100 text-green-800";
-    if (status === "Pending") return "bg-yellow-100 text-yellow-800";
-    return "bg-gray-100 text-gray-800";
-  };
+
 
   if (loading) {
     return (
@@ -83,70 +78,62 @@ function MyAssets() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
-          My Intellectual Properties
+          My Assets
         </h1>
 
         {/* Summary */}
-        <div className="flex justify-around bg-white p-4 rounded-xl shadow mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-6 rounded-xl shadow mb-8">
           <div className="text-center">
-            <p className="text-gray-500">Total IPs</p>
-            <p className="text-xl font-semibold">{assets.length}</p>
+            <p className="text-gray-500">Total Assets</p>
+            <p className="text-3xl font-semibold text-blue-600">{assets.length}</p>
           </div>
           <div className="text-center">
-            <p className="text-gray-500">Verified IPs</p>
-            <p className="text-xl font-semibold">
-              {assets.filter((asset) => asset.status === "Verified").length}
+            <p className="text-gray-500">Latest Asset</p>
+            <p className="text-3xl font-semibold text-green-600">
+              {assets.length > 0 ? assets[0]?.title?.substring(0, 15) : "—"}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-gray-500">Pending IPs</p>
-            <p className="text-xl font-semibold">
-              {assets.filter((asset) => asset.status === "Pending").length}
-            </p>
+            <button
+              onClick={() => navigate("/registerIp")}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
+            >
+              Register New Asset
+            </button>
           </div>
         </div>
 
-        {/* Grid of IPs */}
+        {/* Grid of Assets */}
         {assets.length === 0 ? (
           <div className="text-center text-gray-500 py-10">
-            <p className="text-xl">No assets found. Start by registering an IP!</p>
+            <p className="text-xl">No assets found. Start by registering an asset!</p>
             <button
-              onClick={() => navigate("/registerip")}
+              onClick={() => navigate("/registerIp")}
               className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
             >
-              Register IP
+              Register Asset
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {assets.map((asset) => (
               <div
-                key={asset.id}
+                key={asset.asset_id || asset.id}
                 className="bg-white rounded-xl shadow hover:shadow-lg transition p-6 flex flex-col justify-between"
               >
                 <div>
                   <h2 className="text-xl font-bold text-blue-600 mb-2">{asset.title}</h2>
-                  <p className="text-gray-700 mb-2">{asset.description}</p>
-                  <span
-                    className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                      asset.status
-                    )}`}
-                  >
-                    {asset.status}
-                  </span>
-                </div>
-
-                <div className="mt-4 text-gray-600 text-sm">
-                  <p>IPFS Hash: {asset.ipfsHash}</p>
-                  <p>Metadata: {asset.metadataHash}</p>
-                  <p>Date: {asset.date}</p>
+                  <div className="text-sm text-gray-600 mb-3">
+                    <p><span className="font-medium">Asset ID:</span> {asset.asset_id}</p>
+                    <p><span className="font-medium">Date Created:</span> {new Date(asset.date_created).toLocaleDateString()}</p>
+                  </div>
                 </div>
 
                 <button
-                  onClick={() => navigate(`/registerip`)}
+                  onClick={() => navigate(`/assets/${asset.asset_id || asset.id}`)}
                   className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition shadow"
                 >
-                  View / Edit
+                  View Details
                 </button>
               </div>
             ))}

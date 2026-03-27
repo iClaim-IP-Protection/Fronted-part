@@ -207,11 +207,6 @@ function MyProfile() {
             {/* Profile Picture & Edit */}
             <div className="flex items-center justify-between p-4 border rounded-xl bg-blue-100">
               <div className="flex items-center gap-4">
-                <img
-                  src=""
-                  alt="Avatar"
-                  className="w-20 h-20 rounded-full border-2 border-blue-400"
-                />
                 <div>
                   <p className="font-semibold">{user.name}</p>
                   <p className="text-gray-500">{user.username}</p>

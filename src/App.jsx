@@ -24,10 +24,10 @@ function App() {
         <Route path="/login" element={<Login/>} />
          
 
-        {/* Dashboard (MainPage) */}
+        {/* Home (MainPage) */}
         <Route path="/home" element={<Home/>} />
           
-        {/* Home Page */}
+        {/* Dashboard */}
         
         <Route path="/dashboard" element={<Dashboard/>}/>
           
@@ -35,11 +35,12 @@ function App() {
 
         {/* Register ip */}
         <Route path="/RegisterIp" element={<RegisterIP/>}/>
+        <Route path="/registerip" element={<RegisterIP/>}/>
 
         
         <Route path="/" element={<Login/>}/>
 
-        <Route path="/myAssets" element={<MyAssets/>}/>
+        <Route path="/assets" element={<MyAssets/>}/>
 
         <Route path="/profile" element={<MyProfile/>}/>
 
