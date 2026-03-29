@@ -7,7 +7,6 @@ function Signup() {
   const [lastName, setLastName] = useState("");
   const [contact, setContact] = useState("");
   const [username, setUsername] = useState("");
-  const [wallet, setWallet] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,7 +25,7 @@ function Signup() {
     setLoading(true);
 
     try {
-      const response = await authAPI.register(username, email, contact, wallet, password, firstName, lastName);
+      const response = await authAPI.register(username, email, contact, password, firstName, lastName);
       // Store username in localStorage
       if (response.username) {
         localStorage.setItem('username', response.username);
@@ -66,14 +65,6 @@ function Signup() {
           required
           value={contact}
           onChange={(e) => setContact(e.target.value)}
-          className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-cyan-500 placeholder-gray-400"
-        />
-        <input
-          type="text"
-          placeholder="Wallet Address"
-          required
-          value={wallet}
-          onChange={(e) => setWallet(e.target.value)}
           className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-cyan-500 placeholder-gray-400"
         />
         <input

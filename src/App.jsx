@@ -10,6 +10,8 @@ import ConnectSolanaWallet from "./pages/ConnectSolanaWallet";
 import Home from "./components/Home";
 import AssetInfo from "./pages/AssetInfo";
 import EditAsset from "./pages/EditAsset";
+import AssetCertification from "./pages/AssetCertification";
+import AssetConfirmation from "./pages/AssetConfirmation";
 
 
 function App() {
@@ -41,6 +43,10 @@ function App() {
 
         
         <Route path="/edit-asset/:assetId" element={<EditAsset/>}/>
+
+        <Route path="/assets/:assetId/certify" element={<AssetCertification/>}/>
+
+        <Route path="/assets/:assetId/confirmation" element={<AssetConfirmation/>}/>
 
         <Route path="/assets" element={<MyAssets/>}/>
 

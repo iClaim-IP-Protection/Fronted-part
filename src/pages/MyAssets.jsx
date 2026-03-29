@@ -122,19 +122,40 @@ function MyAssets() {
                 className="bg-white rounded-xl shadow hover:shadow-lg transition p-6 flex flex-col justify-between"
               >
                 <div>
-                  <h2 className="text-xl font-bold text-blue-600 mb-2">{asset.title}</h2>
+                  <div className="flex items-start justify-between mb-2">
+                    <h2 className="text-xl font-bold text-blue-600 flex-1">{asset.title}</h2>
+                    {asset.certified || asset.is_certified ? (
+                      <span className="ml-2 bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
+                        ✓ Certified
+                      </span>
+                    ) : (
+                      <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">
+                        Pending
+                      </span>
+                    )}
+                  </div>
                   <div className="text-sm text-gray-600 mb-3">
-                    <p><span className="font-medium">Asset ID:</span> {asset.asset_id}</p>
+                    <p><span className="font-medium">Asset ID:</span> {asset.asset_id || asset.id}</p>
                     <p><span className="font-medium">Date Created:</span> {new Date(asset.date_created).toLocaleDateString()}</p>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => navigate(`/assets/${asset.asset_id || asset.id}`)}
-                  className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition shadow"
-                >
-                  View Details
-                </button>
+                <div className="flex flex-col gap-2 mt-4">
+                  <button
+                    onClick={() => navigate(`/assets/${asset.asset_id || asset.id}`)}
+                    className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition shadow"
+                  >
+                    View Details
+                  </button>
+                  {!(asset.certified || asset.is_certified) && (
+                    <button
+                      onClick={() => navigate(`/assets/${asset.asset_id || asset.id}/certify`)}
+                      className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition shadow"
+                    >
+                      Certify Asset
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { authAPI, profileAPI, assetsAPI } from "../services/api";
+import { encryptWithProjectKey } from "../utils/aes256gcm";
 
 /**
  * RegisterIP Component - Asset Registration Flow
@@ -38,89 +39,6 @@ function RegisterIP() {
   // Owner info from API
   const [owner, setOwner] = useState(null);
   const [ownerLoading, setOwnerLoading] = useState(true);
-
-  // Encryption key management
-  const [encryptionKey, setEncryptionKey] = useState(null);
-
-  // Generate static encryption key from passphrase on component mount
-  useEffect(() => {
-    const generateStaticKey = async () => {
-      try {
-        // Static passphrase for deterministic key generation
-        const passphrase = "iClaim-Asset-Encryption-V1";
-        const encoder = new TextEncoder();
-        const passphraseData = encoder.encode(passphrase);
-
-        // Derive base key from passphrase
-        const baseKey = await crypto.subtle.importKey(
-          "raw",
-          passphraseData,
-          { name: "PBKDF2" },
-          false,
-          ["deriveKey"]
-        );
-
-        // Derive AES-256 key using PBKDF2
-        const derivedKey = await crypto.subtle.deriveKey(
-          {
-            name: "PBKDF2",
-            salt: new Uint8Array(16), // Static salt for deterministic key
-            iterations: 100000,
-            hash: "SHA-256",
-          },
-          baseKey,
-          { name: "AES-GCM", length: 256 },
-          true, // extractable
-          ["encrypt", "decrypt"]
-        );
-
-        setEncryptionKey(derivedKey);
-        console.log("Static encryption key derived");
-      } catch (err) {
-        console.error("Error generating encryption key:", err);
-        setError("Failed to initialize encryption");
-      }
-    };
-    generateStaticKey();
-  }, []);
-
-  // Helper: Encrypt data with AES-256-GCM using deterministic IV from content hash
-  const encryptData = async (data, key) => {
-    if (!key) throw new Error("Encryption key not available");
-
-    // Derive deterministic IV from file content hash
-    const fileHash = await crypto.subtle.digest("SHA-256", data);
-    const iv = new Uint8Array(fileHash.slice(0, 12)); // First 96 bits for GCM IV
-
-    const encryptedData = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      data
-    );
-
-    // Return IV + encrypted data (IV is public, safe to store together)
-    const result = new Uint8Array(iv.length + encryptedData.byteLength);
-    result.set(iv, 0);
-    result.set(new Uint8Array(encryptedData), iv.length);
-
-    return result;
-  };
-
-  // Helper: Decrypt data with AES-256-GCM
-  const decryptData = async (encryptedData, key) => {
-    if (!key) throw new Error("Encryption key not available");
-
-    const iv = encryptedData.slice(0, 12);
-    const ciphertext = encryptedData.slice(12);
-
-    const decryptedData = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ciphertext
-    );
-
-    return new Uint8Array(decryptedData);
-  };
 
   // Helper: Convert Uint8Array to Base64 (for localStorage)
   const uint8ArrayToBase64 = (uint8Array) => {
@@ -181,7 +99,7 @@ function RegisterIP() {
   }, []);
 
   const handleAssetSubmission = async () => {
-    if (!file || !title || !version || !encryptionKey) {
+    if (!file || !title || !version) {
       setError("Please fill in all required fields");
       return;
     }
@@ -194,24 +112,17 @@ function RegisterIP() {
       const fileArrayBuffer = await file.arrayBuffer();
       const fileUint8Array = new Uint8Array(fileArrayBuffer);
 
-      // 2. Store original file in localStorage for viewing
-      const fileBase64 = uint8ArrayToBase64(fileUint8Array);
-      localStorage.setItem("originalFile", fileBase64);
-      localStorage.setItem("fileName", file.name);
-      localStorage.setItem("fileUploadDate", new Date().toISOString());
-      console.log("Original file stored in localStorage");
-
-      // 3. Encrypt the file with AES-256-GCM
-      const encryptedBytes = await encryptData(fileUint8Array, encryptionKey);
+      // 2. Encrypt the file with AES-256-GCM (includes IV + authTag)
+      const encryptedBytes = await encryptWithProjectKey(fileUint8Array);
       console.log("File encrypted with AES-256-GCM");
 
-      // 4. Convert encrypted bytes to Base64 for transmission
+      // 3. Convert encrypted bytes to Base64 for transmission
       const encryptedBase64 = uint8ArrayToBase64(encryptedBytes);
 
-      // 5. Create Blob from encrypted data
+      // 4. Create Blob from encrypted data
       const encryptedBlob = new Blob([encryptedBase64], { type: "text/plain" });
 
-      // 6. Prepare FormData with asset metadata
+      // 5. Prepare FormData with asset metadata
       const formData = new FormData();
       formData.append("file", encryptedBlob, file.name);
       formData.append("title", title);
@@ -220,18 +131,22 @@ function RegisterIP() {
         formData.append("previous_asset_id", String(previousAssetId));
       }
 
-      // 7. Submit to backend API
+      // 6. Submit to backend API
       setUploadProgress(50);
       const data = await assetsAPI.uploadAsset(formData);
+      
+      // Asset is now stored on IPFS (encrypted)
+      // No need to store in localStorage - fetch from IPFS when needed
+      console.log("Asset registered successfully on IPFS:", data);
+
       setAssetResponse(data);
       setUploadProgress(100);
-      console.log("Asset registered successfully", data);
       setShowPopup(true);
 
       // Redirect after success
       setTimeout(() => {
         setShowPopup(false);
-        navigate("/my-assets");
+        navigate("/assets");
       }, 3000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to register asset";
@@ -349,7 +264,7 @@ function RegisterIP() {
             {loading ? `Submitting... ${uploadProgress}%` : "Submit Asset"}
           </button>
           <button
-            onClick={() => navigate("/my-assets")}
+            onClick={() => navigate("/assets")}
             disabled={loading}
             className="bg-gray-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition shadow-lg disabled:cursor-not-allowed"
           >

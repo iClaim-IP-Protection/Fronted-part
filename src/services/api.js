@@ -62,14 +62,13 @@ export const authAPI = {
     return data;
   },
 
-  register: async (username, email, contact, wallet, password, firstName, lastName) => {
+  register: async (username, email, contact, password, firstName, lastName) => {
     const data = await apiCall('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ 
         username, 
         email, 
         contact, 
-        wallet_address: wallet, 
         password, 
         first_name: firstName, 
         last_name: lastName 
@@ -87,6 +86,13 @@ export const authAPI = {
 
   getCurrentUser: async () => {
     return await apiCall('/api/profile/me', { method: 'GET' });
+  },
+
+  connectWallet: async (walletAddress) => {
+    return await apiCall('/api/profile/connect-wallet', {
+      method: 'POST',
+      body: JSON.stringify({ wallet_address: walletAddress }),
+    });
   },
 
   getToken,

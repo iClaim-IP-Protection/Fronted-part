@@ -1,17 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { assetsAPI, authAPI } from "../services/api";
+import { decryptWithProjectKey } from "../utils/aes256gcm";
+
+// IPFS Gateway URL - using public gateway
+const IPFS_GATEWAY = "https://ipfs.io/ipfs";
+// Alternative gateways:
+// const IPFS_GATEWAY = "https://ipfs.io/ipfs";
+// const IPFS_GATEWAY = "https://cloudflare-ipfs.com/ipfs";
 
 export default function AssetInfo() {
   const { assetId } = useParams();
   const navigate = useNavigate();
 
   const [asset, setAsset] = useState(null);
-  const [fileData, setFileData] = useState(null);
+  const [fileLoading, setFileLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Helper: Convert Base64 to Uint8Array
+  const base64ToUint8Array = (base64) => {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  };
 
   useEffect(() => {
     fetchAssetDetails();
@@ -32,14 +49,6 @@ export default function AssetInfo() {
       // Fetch asset details from backend
       const data = await assetsAPI.getAssetInfo(assetId);
       setAsset(data);
-
-      // Try to load file from localStorage (stored during registration)
-      const storedFile = localStorage.getItem(`asset_file_${assetId}`);
-      if (storedFile) {
-        // Parse the stored JSON (contains type and data)
-        const fileObj = JSON.parse(storedFile);
-        setFileData(fileObj);
-      }
     } catch (err) {
       console.error("Error fetching asset details:", err);
       if (err.message?.includes("401")) {
@@ -52,34 +61,49 @@ export default function AssetInfo() {
     }
   };
 
-  const handleViewFile = () => {
-    if (!fileData) {
-      alert("File data not available");
+  const handleDownloadFile = async () => {
+    if (!asset || !asset.ipfs_hash) {
+      alert("Asset IPFS hash not available");
       return;
     }
 
     try {
-      // Convert base64 back to blob
-      const byteCharacters = atob(fileData.data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: fileData.type });
+      setFileLoading(true);
 
-      // Create download link
+      // 1. Fetch encrypted file from IPFS
+      const ipfsUrl = `${IPFS_GATEWAY}/${asset.ipfs_hash}`;
+      console.log("Fetching from IPFS:", ipfsUrl);
+
+      const response = await fetch(ipfsUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch from IPFS: ${response.status}`);
+      }
+
+      const text = await response.text();
+      
+      // 2. Convert Base64 to Uint8Array
+      const encryptedBytes = base64ToUint8Array(text);
+      
+      // 3. Decrypt the file (using project's static key)
+      const decryptedBytes = decryptWithProjectKey(encryptedBytes);
+      
+      // 4. Create blob and trigger download
+      const blob = new Blob([decryptedBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `asset_${assetId}_${new Date().getTime()}`;
+      link.download = `${asset.title || "asset"}_v${asset.version || "1"}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+
+      console.log("File decrypted and downloaded successfully");
     } catch (err) {
-      console.error("Error downloading file:", err);
-      alert("Failed to download file");
+      console.error("Error downloading/decrypting file:", err);
+      alert("Failed to download file: " + err.message);
+    } finally {
+      setFileLoading(false);
     }
   };
 
@@ -87,9 +111,6 @@ export default function AssetInfo() {
     try {
       setDeleting(true);
       await assetsAPI.deleteAsset(assetId);
-
-      // Clear localStorage
-      localStorage.removeItem(`asset_file_${assetId}`);
 
       // Redirect to my-assets
       navigate("/assets");
@@ -103,7 +124,6 @@ export default function AssetInfo() {
   };
 
   const handleEdit = () => {
-    // Navigate to edit page (can be implemented later)
     navigate(`/edit-asset/${assetId}`);
   };
 
@@ -241,34 +261,26 @@ export default function AssetInfo() {
               </p>
             </div>
 
-            {/* File Data Section */}
-            {fileData && (
-              <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mb-8">
-                <h3 className="text-sm font-semibold text-blue-700 uppercase mb-4">
-                  Stored File
-                </h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-blue-600 uppercase tracking-wide mb-1">
-                      File Type
-                    </p>
-                    <p className="font-semibold text-blue-900">{fileData.type}</p>
-                  </div>
-                  <button
-                    onClick={handleViewFile}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
-                  >
-                    Download File
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {!fileData && (
-              <div className="bg-gray-100 border border-gray-300 p-6 rounded-lg mb-8 text-center text-gray-600">
-                <p>No file data available in local storage</p>
-              </div>
-            )}
+            {/* File Download Section */}
+            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mb-8">
+              <h3 className="text-sm font-semibold text-blue-700 uppercase mb-4">
+                Original File
+              </h3>
+              <p className="text-sm text-blue-600 mb-4">
+                Download the original file from your current session storage.
+              </p>
+              <button
+                onClick={handleDownloadFile}
+                disabled={fileLoading}
+                className={`w-full py-3 rounded-lg transition font-medium flex items-center justify-center gap-2 ${
+                  fileLoading
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                {fileLoading ? "Downloading..." : "Download File"}
+              </button>
+            </div>
           </div>
 
           {/* Action Buttons */}

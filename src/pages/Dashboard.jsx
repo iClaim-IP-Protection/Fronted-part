@@ -6,44 +6,24 @@ function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [username, setUsername] = useState(null);
   
-  const [data, setData] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Fetch current user info
-        const userInfo = await authAPI.getCurrentUser();
+        // Fetch dashboard data from /api/dashboard/me endpoint
+        const data = await dashboardAPI.getDashboard();
         
-        if (!userInfo || !userInfo.username) {
-          setError("Unable to retrieve user information");
-          navigate("/login");
-          return;
-        }
-
-        setUsername(userInfo.username);
-
-        // Fetch dashboard data
-        const dashboardData = await dashboardAPI.getDashboard(userInfo.username);
-        
-        if (!dashboardData) {
+        if (!data) {
           setError("Unable to retrieve dashboard data");
           return;
         }
 
-        // Normalize and validate dashboard data
-        const normalizedData = {
-          total_ips: dashboardData.total_ips ?? 0,
-          verified_ips: dashboardData.verified_ips ?? 0,
-          transfers: dashboardData.transfers ?? 0,
-          ips: Array.isArray(dashboardData.ips) ? dashboardData.ips : [],
-        };
-
-        setData(normalizedData);
-        console.log("Dashboard data loaded successfully:", normalizedData);
+        setDashboardData(data);
+        console.log("Dashboard data loaded successfully:", data);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
         setError(errorMessage);
@@ -79,10 +59,10 @@ function Dashboard() {
       {/* Sidebar */}
       <div className="w-1/5 bg-blue-900 text-white p-6 overflow-auto">
         <h1 className="text-2xl font-bold mb-10">iClaim</h1>
-        {username && (
+        {dashboardData && (
           <div className="mb-8 pb-6 border-b border-blue-700">
             <p className="text-sm text-blue-200">Logged in as</p>
-            <p className="text-lg font-semibold text-white">{username}</p>
+            <p className="text-lg font-semibold text-white">{dashboardData.username}</p>
           </div>
         )}
         <ul className="space-y-6">
@@ -158,56 +138,101 @@ function Dashboard() {
             )}
 
             {/* Dashboard Content */}
-            {data ? (
+            {dashboardData ? (
               <>
-                {/* Summary Cards */}
-                <div className="grid grid-cols-3 gap-6 mb-6">
-                  <div className="bg-blue-200 text-blue-900 p-6 text-center rounded shadow hover:scale-105 transform transition">
-                    <p className="text-sm font-semibold">Total IPs</p>
-                    <p className="text-3xl font-bold">{data.total_ips}</p>
-                  </div>
-                  <div className="bg-green-200 text-green-900 p-6 text-center rounded shadow hover:scale-105 transform transition">
-                    <p className="text-sm font-semibold">Verified IPs</p>
-                    <p className="text-3xl font-bold">{data.verified_ips}</p>
-                  </div>
-                  <div className="bg-yellow-200 text-yellow-900 p-6 text-center rounded shadow hover:scale-105 transform transition">
-                    <p className="text-sm font-semibold">Transfers</p>
-                    <p className="text-3xl font-bold">{data.transfers}</p>
+                {/* Welcome Section */}
+                <div className="mb-8">
+                  <h1 className="text-4xl font-bold text-gray-800">
+                    Welcome, {dashboardData.first_name || dashboardData.username}!
+                  </h1>
+                  <p className="text-gray-600 mt-2">Here's your intellectual property overview</p>
+                </div>
+
+                {/* User Info Section */}
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">Account Information</h2>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm text-gray-600 font-semibold">Name</p>
+                      <p className="text-lg text-gray-800">{dashboardData.first_name} {dashboardData.last_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 font-semibold">Email</p>
+                      <p className="text-lg text-gray-800">{dashboardData.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 font-semibold">Wallet Address</p>
+                      <p className="text-sm text-gray-800 font-mono break-all">{dashboardData.wallet_address || "Not connected"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 font-semibold">Member Since</p>
+                      <p className="text-lg text-gray-800">
+                        {new Date(dashboardData.date_created).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {/* IP Cards */}
-                <div className="mt-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4">Your IPs</h2>
-                  {data.ips && data.ips.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-6">
-                      {data.ips.map((ip) => (
-                        <div
-                          key={ip.id || ip.name}
-                          className={`p-6 rounded shadow transform transition hover:scale-105 ${
-                            ip.status === "verified" ? "bg-green-100 text-green-900" : "bg-yellow-100 text-yellow-900"
-                          }`}
-                        >
-                          <h3 className="font-semibold text-lg">{ip.name || "Unknown"}</h3>
-                          <p className="text-sm mt-2">
-                            <span className="font-semibold">Status: </span>
-                            {ip.status || "pending"}
-                          </p>
-                          {ip.address && <p className="text-sm text-gray-600 mt-1">{ip.address}</p>}
-                        </div>
-                      ))}
+                {/* Summary Statistics */}
+                <div className="grid grid-cols-3 gap-6 mb-8">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transform transition hover:scale-105">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 font-semibold text-sm">Total Assets</p>
+                        <p className="text-4xl font-bold mt-2">{dashboardData.asset_count}</p>
+                      </div>
+                      <div className="text-5xl opacity-20">📦</div>
                     </div>
-                  ) : (
-                    <div className="text-center text-gray-500 py-10 bg-gray-100 rounded">
-                      <p className="text-lg">No IPs registered yet</p>
-                      <Link
-                        to="/registerIp"
-                        className="text-blue-600 hover:text-blue-800 font-semibold mt-2 inline-block"
-                      >
-                        Register your first IP →
-                      </Link>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transform transition hover:scale-105">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 font-semibold text-sm">IP Registrations</p>
+                        <p className="text-4xl font-bold mt-2">{dashboardData.ip_count}</p>
+                      </div>
+                      <div className="text-5xl opacity-20">💡</div>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transform transition hover:scale-105">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 font-semibold text-sm">Certifications</p>
+                        <p className="text-4xl font-bold mt-2">{dashboardData.certifications_count}</p>
+                      </div>
+                      <div className="text-5xl opacity-20">🏆</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                  <div className="grid grid-cols-3 gap-4">
+                    <Link
+                      to="/assets"
+                      className="bg-white hover:bg-blue-50 border border-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg text-center transition"
+                    >
+                      📦 View Assets
+                    </Link>
+                    <Link
+                      to="/registerIp"
+                      className="bg-white hover:bg-green-50 border border-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg text-center transition"
+                    >
+                      ➕ Register IP
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="bg-white hover:bg-purple-50 border border-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg text-center transition"
+                    >
+                      👤 Edit Profile
+                    </Link>
+                  </div>
                 </div>
               </>
             ) : (
