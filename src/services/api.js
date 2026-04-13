@@ -9,6 +9,15 @@ const setToken = (token) => localStorage.setItem('jwt_token', token);
 // Helper function to remove JWT token
 const removeToken = () => localStorage.removeItem('jwt_token');
 
+// Helper function to get User ID from localStorage
+const getUserId = () => localStorage.getItem('user_id');
+
+// Helper function to set User ID in localStorage
+const setUserId = (userId) => localStorage.setItem('user_id', userId);
+
+// Helper function to remove User ID from localStorage
+const removeUserId = () => localStorage.removeItem('user_id');
+
 // Helper function for API calls with error handling
 const apiCall = async (endpoint, options = {}) => {
   const headers = {
@@ -59,6 +68,9 @@ export const authAPI = {
     if (data.access_token) {
       setToken(data.access_token);
     }
+    if (data.id) {
+      setUserId(data.id);
+    }
     return data;
   },
 
@@ -77,11 +89,15 @@ export const authAPI = {
     if (data.access_token) {
       setToken(data.access_token);
     }
+    if (data.id) {
+      setUserId(data.id);
+    }
     return data;
   },
 
   logout: () => {
     removeToken();
+    removeUserId();
   },
 
   getCurrentUser: async () => {
@@ -95,7 +111,14 @@ export const authAPI = {
     });
   },
 
+  disconnectWallet: async () => {
+    return await apiCall('/api/profile/disconnect-wallet', {
+      method: 'POST',
+    });
+  },
+
   getToken,
+  getUserId,
   isAuthenticated: () => !!getToken(),
 };
 

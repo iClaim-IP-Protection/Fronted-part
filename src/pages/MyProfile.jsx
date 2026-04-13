@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { profileAPI, authAPI } from "../services/api";
+import { useWallet } from "../context/WalletContext";
 
 function MyProfile() {
   const navigate = useNavigate();
+  const { walletAddress, isConnected } = useWallet();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -263,12 +265,37 @@ function MyProfile() {
               </div>
               <div>
                 <label className="text-gray-700 font-medium">Wallet Address:</label>
-                <input
-                  type="text"
-                  value={user.wallet}
-                  disabled
-                  className="w-full p-2 mt-1 rounded border bg-blue-100 cursor-not-allowed font-mono text-sm"
-                />
+                <div className="flex items-center gap-2 mt-1">
+                  {isConnected ? (
+                    <>
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <input
+                        type="text"
+                        value={walletAddress}
+                        disabled
+                        className="flex-1 p-2 rounded border bg-blue-100 cursor-not-allowed font-mono text-sm"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                      <input
+                        type="text"
+                        value={user.wallet}
+                        disabled
+                        className="flex-1 p-2 rounded border bg-blue-100 cursor-not-allowed font-mono text-sm"
+                      />
+                    </>
+                  )}
+                </div>
+                {!isConnected && user.wallet === "Not connected" && (
+                  <button
+                    onClick={() => navigate("/connect-wallet")}
+                    className="mt-2 text-blue-600 text-sm font-semibold hover:underline"
+                  >
+                    → Connect Wallet
+                  </button>
+                )}
               </div>
             </div>
 

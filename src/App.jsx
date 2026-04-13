@@ -1,5 +1,6 @@
 import {BrowserRouter, Route, Routes} from "react-router-dom"
 import React, { useState } from "react";
+import { WalletProvider } from "./context/WalletContext";
 import Dashboard from "./pages/Dashboard";
 import RegisterIP from "./pages/RegisterIp";
 import Login from "./components/Login";
@@ -12,6 +13,7 @@ import AssetInfo from "./pages/AssetInfo";
 import EditAsset from "./pages/EditAsset";
 import AssetCertification from "./pages/AssetCertification";
 import AssetConfirmation from "./pages/AssetConfirmation";
+import MainLayout from "./layouts/MainLayout";
 
 
 function App() {
@@ -19,7 +21,8 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
+      <WalletProvider>
+        <Routes>
 
       {/* signup */}
 
@@ -33,30 +36,31 @@ function App() {
           
         {/* Dashboard */}
         
-        <Route path="/dashboard" element={<Dashboard/>}/>
+        <Route path="/dashboard" element={<MainLayout><Dashboard/></MainLayout>}/>
           
-         <Route path="/connect-wallet" element={<ConnectSolanaWallet/>}/> 
+         <Route path="/connect-wallet" element={<MainLayout><ConnectSolanaWallet/></MainLayout>}/> 
 
         {/* Register ip */}
-        <Route path="/RegisterIp" element={<RegisterIP/>}/>
-        <Route path="/registerip" element={<RegisterIP/>}/>
+        <Route path="/RegisterIp" element={<MainLayout><RegisterIP/></MainLayout>}/>
+        <Route path="/registerip" element={<MainLayout><RegisterIP/></MainLayout>}/>
 
         
-        <Route path="/edit-asset/:assetId" element={<EditAsset/>}/>
+        <Route path="/edit-asset/:assetId" element={<MainLayout><EditAsset/></MainLayout>}/>
 
-        <Route path="/assets/:assetId/certify" element={<AssetCertification/>}/>
+        <Route path="/assets/:assetId/certify" element={<MainLayout><AssetCertification/></MainLayout>}/>
 
-        <Route path="/assets/:assetId/confirmation" element={<AssetConfirmation/>}/>
+        <Route path="/assets/:assetId/confirmation" element={<MainLayout><AssetConfirmation/></MainLayout>}/>
 
-        <Route path="/assets" element={<MyAssets/>}/>
+        <Route path="/assets" element={<MainLayout><MyAssets/></MainLayout>}/>
 
-        <Route path="/assets/:assetId" element={<AssetInfo/>}/>
+        <Route path="/assets/:assetId" element={<MainLayout><AssetInfo/></MainLayout>}/>
 
-        <Route path="/" element={<MyAssets/>}/>
+        <Route path="/" element={<MainLayout><MyAssets/></MainLayout>}/>
 
-        <Route path="/profile" element={<MyProfile/>}/>
+        <Route path="/profile" element={<MainLayout><MyProfile/></MainLayout>}/>
 
       </Routes>
+      </WalletProvider>
     </BrowserRouter>
   );
 }

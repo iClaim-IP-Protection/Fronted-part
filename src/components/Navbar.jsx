@@ -5,7 +5,7 @@ const Navbar = () => {
       <div className="container mx-auto flex justify-between items-center">
 
         {/* Logo */}
-        <h1 className="text-rose-500 font-bold text-2xl px-6">Logo</h1>
+        <h1 className="text-rose-500 font-bold text-2xl px-6">iClaim</h1>
 
         {/* Menu */}
         <ul className="flex gap-14 px-4">
@@ -21,7 +21,7 @@ const Navbar = () => {
 
           <li>
             <Link
-              to="/HomePage"
+              to="/home"
               className="font-bold text-lg hover:text-white hover:scale-105 transform transition duration-300 ease-in-out"
             >
               Home

@@ -29,13 +29,13 @@ export default function AssetCertification() {
           return;
         }
 
-        // Fetch current user
-        const userData = await authAPI.getCurrentUser();
-        setUser(userData);
-
-        // Fetch asset details
+        // Fetch asset details (includes user_id)
         const assetData = await assetsAPI.getAssetInfo(assetId);
         setAsset(assetData);
+
+        // Fetch current user for owner name display
+        const userData = await authAPI.getCurrentUser();
+        setUser(userData);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to load data";
         setError(errorMessage);
@@ -54,8 +54,8 @@ export default function AssetCertification() {
 
   // Generate hashes
   const handleGenerateHashes = async () => {
-    if (!asset || !user) {
-      setError("Asset or user data not loaded");
+    if (!asset) {
+      setError("Asset data not loaded");
       return;
     }
 
@@ -63,17 +63,21 @@ export default function AssetCertification() {
     setError(null);
 
     try {
-      // Use correct field names from API response
-      const assetId = asset.asset_id || asset.id;
-      const userId = user.id || user.user_id;
-
-      if (!assetId || !userId) {
-        throw new Error(`Invalid asset (${assetId}) or user (${userId}) ID`);
+      // Use asset_id from asset response
+      const assetId = asset.asset_id;
+      // Use user_id from asset response, fallback to current user's id
+      let userId = asset.user_id;
+      if (!userId && user) {
+        userId = user.id;
       }
 
-      console.log("Generating hashes with:", { assetId, userId, title: asset.title });
+      if (!assetId || !userId) {
+        throw new Error(`Invalid asset (${assetId}) or user (${userId}) ID. The backend may need to include user_id in the asset response.`);
+      }
+
+      console.log("Generating hashes with:", { assetId, userId, title: asset.asset_title });
       
-      const result = await computeAllHashes(assetId, userId, asset.title);
+      const result = await computeAllHashes(assetId, userId, asset.asset_title);
       setHashes(result);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to generate hashes";
@@ -86,8 +90,8 @@ export default function AssetCertification() {
 
   // Save hashes to database
   const handleSaveHashes = async () => {
-    if (!hashes || !asset || !user) {
-      setError("Hash data not available");
+    if (!hashes || !asset) {
+      setError("Hash or asset data not available");
       return;
     }
 
@@ -95,12 +99,12 @@ export default function AssetCertification() {
     setError(null);
 
     try {
-      // Get the correct field names
-      const userId = user.id || user.user_id;
+      // Get user_id from asset (owner of the asset)
+      const userId = asset.user_id;
       const nftId = asset.nft_info_id || asset.nft_id;
       
       if (!userId) {
-        throw new Error("User ID not found");
+        throw new Error("User ID not found in asset data");
       }
 
       if (!nftId) {
@@ -166,24 +170,24 @@ export default function AssetCertification() {
         )}
 
         {/* Asset Details Card */}
-        {asset && user && (
+        {asset && (
           <div className="bg-white p-6 rounded-xl shadow mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-gray-500 text-sm uppercase tracking-wide">Asset Title</p>
-                <p className="text-2xl font-bold text-blue-600 mt-1">{asset.title}</p>
+                <p className="text-2xl font-bold text-blue-600 mt-1">{asset.asset_title}</p>
               </div>
               <div>
                 <p className="text-gray-500 text-sm uppercase tracking-wide">Owner</p>
-                <p className="text-2xl font-bold text-blue-600 mt-1">{user.first_name} {user.last_name}</p>
+                <p className="text-2xl font-bold text-blue-600 mt-1">{user ? `${user.first_name} ${user.last_name}` : "Loading..."}</p>
               </div>
               <div>
                 <p className="text-gray-500 text-sm uppercase tracking-wide">Asset ID</p>
-                <p className="text-sm font-mono text-gray-700 mt-1">{asset.asset_id || asset.id} {!asset.asset_id && asset.id && '(id)'}</p>
+                <p className="text-sm font-mono text-gray-700 mt-1">{asset.asset_id}</p>
               </div>
               <div>
                 <p className="text-gray-500 text-sm uppercase tracking-wide">Owner ID</p>
-                <p className="text-sm font-mono text-gray-700 mt-1">{user.id || user.user_id} {!user.id && user.user_id && '(user_id)'}</p>
+                <p className="text-sm font-mono text-gray-700 mt-1">{asset.user_id}</p>
               </div>
             </div>
           </div>
@@ -203,9 +207,9 @@ export default function AssetCertification() {
 
           <button
             onClick={handleGenerateHashes}
-            disabled={loading || !asset || !user}
+            disabled={loading || !asset}
             className={`${
-              loading || !asset || !user
+              loading || !asset
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 transition"
             } text-white px-6 py-3 rounded-lg font-semibold`}

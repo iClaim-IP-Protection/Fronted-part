@@ -1,57 +1,47 @@
 // ConnectSolanaWallet.jsx
-import React, { useState, useEffect } from "react";
-import { authAPI } from "../services/api";
+import React, { useState } from "react";
+import { useWallet } from "../context/WalletContext";
 
 function ConnectSolanaWallet() {
-  const [walletAddress, setWalletAddress] = useState(null);
-  const [error, setError] = useState("");
+  const { walletAddress, connectWallet, disconnectWallet, error } = useWallet();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
+  const [localError, setLocalError] = useState("");
 
-  // Check if wallet is already connected on page load
-  useEffect(() => {
-    if (window.solana && window.solana.isPhantom) {
-      window.solana.connect({ onlyIfTrusted: true })
-        .then(({ publicKey }) => setWalletAddress(publicKey.toString()))
-        .catch(() => {}); // ignore if not connected
-    }
-  }, []);
+  const handleConnect = async () => {
+    try {
+      setLoading(true);
+      setLocalError("");
+      setSuccess("");
 
-  // Function to connect wallet and save to backend
-  const connectWallet = async () => {
-    if (window.solana && window.solana.isPhantom) {
-      try {
-        setLoading(true);
-        setError("");
-        setSuccess("");
-
-        // Connect to Phantom wallet
-        const response = await window.solana.connect();
-        const address = response.publicKey.toString();
-        
-        // Save wallet address to backend
-        await authAPI.connectWallet(address);
-        
-        setWalletAddress(address);
-        setSuccess("Wallet connected and saved successfully!");
-        console.log("Wallet connected:", address);
-      } catch (err) {
-        const errorMsg = err.message || "Failed to connect wallet";
-        setError(errorMsg);
-        console.error("Error connecting wallet:", err);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setError("Phantom Wallet is not installed. Please install it.");
+      await connectWallet();
+      setSuccess("Wallet connected and saved successfully!");
+    } catch (err) {
+      setLocalError(err.message || "Failed to connect wallet");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Disconnect (just reset state)
-  const disconnectWallet = () => {
-    setWalletAddress(null);
-    setError("");
-    setSuccess("");
+  const handleDisconnect = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to disconnect your wallet? This will remove it from your profile."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      setLocalError("");
+      setSuccess("");
+
+      await disconnectWallet();
+      setSuccess("Wallet disconnected successfully!");
+    } catch (err) {
+      setLocalError(err.message || "Failed to disconnect wallet");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,17 +57,21 @@ function ConnectSolanaWallet() {
             <p className="text-gray-700">Connected Wallet:</p>
             <p className="text-lg font-medium bg-blue-100 p-3 rounded break-all text-sm">{walletAddress}</p>
             <button
-              onClick={disconnectWallet}
-              className="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition"
+              onClick={handleDisconnect}
+              disabled={loading}
+              className={`bg-gray-400 text-white px-6 py-2 rounded-lg transition ${
+                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-500"
+              }`}
             >
-              Disconnect
+              {loading ? "Disconnecting..." : "Disconnect"}
             </button>
+            {success && <p className="text-green-600 text-sm font-semibold">{success}</p>}
           </div>
         ) : (
           <div className="space-y-4">
             <p className="text-gray-600">No wallet connected</p>
             <button
-              onClick={connectWallet}
+              onClick={handleConnect}
               disabled={loading}
               className={`bg-blue-500 text-white px-6 py-3 rounded-lg transition shadow-lg ${
                 loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
@@ -85,7 +79,9 @@ function ConnectSolanaWallet() {
             >
               {loading ? "Connecting..." : "Connect Phantom Wallet"}
             </button>
-            {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
+            {(localError || error) && (
+              <p className="text-red-500 mt-2 text-sm">{localError || error}</p>
+            )}
             {success && <p className="text-green-600 mt-2 text-sm font-semibold">{success}</p>}
           </div>
         )}

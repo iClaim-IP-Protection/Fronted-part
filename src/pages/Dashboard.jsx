@@ -1,9 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { dashboardAPI, authAPI } from "../services/api";
+import { useWallet } from "../context/WalletContext";
 
 function Dashboard() {
   const navigate = useNavigate();
+  const { walletAddress, isConnected } = useWallet();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -63,6 +65,12 @@ function Dashboard() {
           <div className="mb-8 pb-6 border-b border-blue-700">
             <p className="text-sm text-blue-200">Logged in as</p>
             <p className="text-lg font-semibold text-white">{dashboardData.username}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-gray-400'}`}></div>
+              <span className="text-xs text-blue-100">
+                {isConnected ? 'Wallet Connected' : 'No Wallet'}
+              </span>
+            </div>
           </div>
         )}
         <ul className="space-y-6">
@@ -162,7 +170,18 @@ function Dashboard() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 font-semibold">Wallet Address</p>
-                      <p className="text-sm text-gray-800 font-mono break-all">{dashboardData.wallet_address || "Not connected"}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {isConnected ? (
+                          <>
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <p className="text-sm text-gray-800 font-mono break-all">{walletAddress}</p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">
+                            {dashboardData.wallet_address ? dashboardData.wallet_address : "Not connected"}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 font-semibold">Member Since</p>
