@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { assetsAPI, authAPI } from "../services/api";
 import { decryptWithProjectKey } from "../utils/aes256gcm";
+import TransactionHistoryView from "../components/TransactionHistoryView";
 
 // IPFS Gateway URL - using public gateway
 const IPFS_GATEWAY = "https://ipfs.io/ipfs";
@@ -281,6 +282,9 @@ export default function AssetInfo() {
                 {fileLoading ? "Downloading..." : "Download File"}
               </button>
             </div>
+
+            {/* Blockchain Transaction History */}
+            <TransactionHistoryView assetId={assetId} />
           </div>
 
           {/* Action Buttons */}

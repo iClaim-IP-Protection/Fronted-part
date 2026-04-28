@@ -1,6 +1,7 @@
 import {BrowserRouter, Route, Routes} from "react-router-dom"
 import React, { useState } from "react";
 import { WalletProvider } from "./context/WalletContext";
+import { BlockchainProvider } from "./context/BlockchainContext";
 import Dashboard from "./pages/Dashboard";
 import RegisterIP from "./pages/RegisterIp";
 import Login from "./components/Login";
@@ -22,7 +23,8 @@ function App() {
   return (
     <BrowserRouter>
       <WalletProvider>
-        <Routes>
+        <BlockchainProvider>
+          <Routes>
 
       {/* signup */}
 
@@ -60,6 +62,7 @@ function App() {
         <Route path="/profile" element={<MainLayout><MyProfile/></MainLayout>}/>
 
       </Routes>
+        </BlockchainProvider>
       </WalletProvider>
     </BrowserRouter>
   );

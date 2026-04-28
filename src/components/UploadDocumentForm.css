@@ -1,0 +1,330 @@
+.upload-document-form {
+  padding: 20px;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.form-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-card h2 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.form-description {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 20px 0;
+}
+
+/* File Input Section */
+.file-input-section {
+  margin-bottom: 20px;
+}
+
+.file-input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.file-input:hover:not(:disabled) {
+  border-color: #4CAF50;
+}
+
+.file-input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.file-display {
+  padding: 12px;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.file-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 14px;
+}
+
+.file-name {
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+  word-break: break-all;
+}
+
+.file-size {
+  color: #999;
+  margin-left: 10px;
+  white-space: nowrap;
+}
+
+.file-placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* Error Message */
+.error-message {
+  padding: 12px;
+  background-color: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 4px;
+  color: #c62828;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+/* Status Messages */
+.status-message {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.status-message.uploading,
+.status-message.processing {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+}
+
+/* Hash Section */
+.hash-section {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border-left: 4px solid #4CAF50;
+}
+
+.hash-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.hash-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: white;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.hash-value {
+  flex: 1;
+  overflow-x: auto;
+  word-break: break-all;
+  font-size: 12px;
+  color: #333;
+  white-space: normal;
+}
+
+.copy-button {
+  padding: 8px 12px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  transition: background-color 0.3s;
+  flex-shrink: 0;
+}
+
+.copy-button:hover:not(:disabled) {
+  background-color: #1976D2;
+}
+
+.copy-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.copy-button.small {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* Success Section */
+.success-section {
+  text-align: center;
+  padding: 20px;
+  background-color: #f1f8f4;
+  border: 2px solid #4CAF50;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.success-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.success-section h3 {
+  margin: 10px 0;
+  color: #2e7d32;
+  font-size: 18px;
+}
+
+.success-details {
+  text-align: left;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #c8e6c9;
+}
+
+.detail-item {
+  margin-bottom: 12px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #333;
+  min-width: 120px;
+}
+
+.detail-value {
+  flex: 1;
+  color: #555;
+  word-break: break-all;
+}
+
+.detail-value.status-confirmed {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.success-message {
+  margin-top: 15px;
+  color: #2e7d32;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Button Group */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background-color: #2196F3;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #1976D2;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: #388E3C;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-secondary {
+  background-color: #757575;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #616161;
+}
+
+.btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .form-card {
+    padding: 20px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .hash-display {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hash-value {
+    word-break: break-all;
+  }
+
+  .copy-button {
+    width: 100%;
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

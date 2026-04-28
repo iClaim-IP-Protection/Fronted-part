@@ -1,0 +1,88 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 2px solid;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+/* Confirmed Status */
+.status-badge.status-confirmed {
+  border-color: #4CAF50;
+  background-color: #f1f8f4;
+  color: #2e7d32;
+}
+
+.status-badge.status-confirmed:hover {
+  background-color: #e8f5e9;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+/* Pending Status */
+.status-badge.status-pending {
+  border-color: #FFA500;
+  background-color: #fffbf0;
+  color: #e65100;
+  animation: pulse 2s infinite;
+}
+
+.status-badge.status-pending:hover {
+  background-color: #fff8e1;
+  box-shadow: 0 2px 8px rgba(255, 165, 0, 0.2);
+}
+
+/* Failed Status */
+.status-badge.status-failed {
+  border-color: #F44336;
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-badge.status-failed:hover {
+  background-color: #ffcdd2;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
+/* Unknown Status */
+.status-badge.status-unknown {
+  border-color: #999;
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.status-icon {
+  font-size: 14px;
+  display: inline-block;
+}
+
+.status-text {
+  letter-spacing: 0.5px;
+}
+
+/* Pulse animation for pending */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 165, 0, 0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .status-icon {
+    font-size: 12px;
+  }
+}
