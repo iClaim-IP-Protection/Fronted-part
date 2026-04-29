@@ -191,7 +191,7 @@ export const generateProtectedIPCertificatePDF = (certificateData) => {
   const maxWidth = pageWidth - 50;
 
   // Certificate statement
-  const statement = `This is to certify that the file referred hereunder existed and was presented on the date and time encoded to iClaim by the entity identified as ${certificateData.submitterName || 'the registered user'}.`;
+  const statement = `This is to certify that the file referred hereunder existed and was presented to iClaim by the entity identified as ${certificateData.submitterName || 'the registered user'}.`;
 
   const statementLines = pdf.splitTextToSize(statement, maxWidth);
   pdf.text(statementLines, 25, yPosition);

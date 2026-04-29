@@ -231,56 +231,50 @@ export default function AssetInfo() {
 
   const handleDownloadProtectedIPCertificate = async () => {
     try {
-      // Check if asset is certified
       console.log("🔐 Certificate button clicked");
-      console.log("   asset?.is_certified:", asset?.is_certified);
-      console.log("   asset?.certified:", asset?.certified);
-      console.log("   Condition (!asset?.is_certified && !asset?.certified):", !asset?.is_certified && !asset?.certified);
       
-      if (!asset?.is_certified && !asset?.certified) {
-        alert("This asset has not been certified yet. Please certify the asset first.");
-        return;
-      }
-
       setCertificateLoading(true);
 
       // Fetch transaction data
       let transactionData = null;
-      let certificateHash = null;
 
       try {
         const txData = await blockchainAPI.getAssetTransactions(assetId);
+        console.log("📦 Transaction data:", txData);
         transactionData = txData?.transactions?.[0];
-
-        // Generate certificate hash (same as during NFT minting)
-        if (userInfo && userInfo.id) {
-          certificateHash = generateCertificateHash(
-            assetId,
-            userInfo.username || userInfo.email,
-            asset.date_certified || asset.date_created
-          );
-        }
       } catch (txErr) {
         console.warn('Could not fetch transaction data:', txErr);
       }
 
-      // Prepare certificate data
+      // Prepare certificate data (using only available data from frontend/API)
       const submitterName = userInfo?.first_name && userInfo?.last_name 
         ? `${userInfo.first_name} ${userInfo.last_name}`
         : userInfo?.username || userInfo?.email || 'Unknown User';
 
+      // Helper: Format date without time
+      const formatDateOnly = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+      };
+
       const certificateData = {
         assetTitle: asset.asset_title || asset.title || 'Unknown Asset',
         submitterName: submitterName,
-        uploadedDate: asset.date_created ? new Date(asset.date_created).toLocaleString() : 'N/A',
-        certifiedDate: asset.date_certified ? new Date(asset.date_certified).toLocaleString() : 'N/A',
+        uploadedDate: formatDateOnly(asset.date_created),
+        certifiedDate: formatDateOnly(asset.date_created),
         ipfsHash: asset.ipfs_hash || 'N/A',
         nftHash: transactionData?.nft_hash || 'N/A',
         transactionId: transactionData?.signature || 'N/A',
         blockNumber: transactionData?.block_number || 'N/A',
         walletAddress: userInfo?.wallet_address || userInfo?.solana_wallet || 'N/A',
-        certificateId: certificateHash || 'N/A',
+        certificateId: transactionData?.certificate_hash || 'N/A',
       };
+
+      console.log("📄 Certificate data:", certificateData);
 
       // Generate PDF
       const pdf = generateProtectedIPCertificatePDF(certificateData);
@@ -288,6 +282,7 @@ export default function AssetInfo() {
       downloadCertificatePDF(pdf, filename);
 
       console.log('✅ Protected IP Certificate downloaded successfully');
+      alert('✅ Protected IP Certificate downloaded successfully!');
     } catch (err) {
       console.error('Error generating Protected IP Certificate:', err);
       alert('Failed to generate Protected IP Certificate: ' + err.message);
@@ -465,15 +460,13 @@ export default function AssetInfo() {
                 📜 Protected IP Certificate
               </h3>
               <p className="text-sm text-amber-600 mb-4">
-                {asset?.is_certified || asset?.certified 
-                  ? 'Download the certificate of your protected intellectual property with blockchain verification details.'
-                  : 'This asset must be certified (NFT minted) before a certificate can be generated.'}
+                Download the certificate of your protected intellectual property with blockchain verification details.
               </p>
               <button
                 onClick={handleDownloadProtectedIPCertificate}
-                disabled={certificateLoading || (!asset?.is_certified && !asset?.certified)}
+                disabled={certificateLoading}
                 className={`w-full py-3 rounded-lg transition font-medium flex items-center justify-center gap-2 ${
-                  certificateLoading || (!asset?.is_certified && !asset?.certified)
+                  certificateLoading
                     ? "bg-gray-400 text-white cursor-not-allowed"
                     : "bg-amber-600 text-white hover:bg-amber-700"
                 }`}

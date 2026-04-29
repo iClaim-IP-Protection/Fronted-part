@@ -82,7 +82,7 @@ export default function CertificateDisplay({
 
         {/* Footer */}
         <div className="border-t-2 border-blue-400 pt-6 text-center">
-          <p className="text-gray-600 text-sm mb-2">
+          <p className="text-gray-600 text-sm mb-4">
             Generated on {new Date().toLocaleString()}
           </p>
           <p className="text-green-600 font-bold text-lg">
