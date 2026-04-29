@@ -77,7 +77,7 @@ export default function AssetCertification() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate(`/my-assets`)}
+            onClick={() => navigate(`/assets/`)}
             className="mb-4 text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2"
           >
             ← Back to My Assets

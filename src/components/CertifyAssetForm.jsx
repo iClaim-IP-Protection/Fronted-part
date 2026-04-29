@@ -109,6 +109,7 @@ const CertifyAssetForm = ({
 
   const handleCertify = async () => {
     if (!canCertify()) {
+      console.warn('Cannot certify: missing prerequisites');
       return;
     }
 
@@ -120,22 +121,32 @@ const CertifyAssetForm = ({
       const assetId = asset.asset_id || asset.id;
       const documentHash = asset.document_hash;
 
+      console.log('Starting certification for asset:', assetId);
+
       // Generate hashes
+      console.log('Generating NFT hash...');
       const nft = await hashingUtilities.generateNFTHash(assetId, documentHash);
       setNftHash(nft);
+      console.log('NFT Hash:', nft);
 
+      console.log('Generating Certificate hash...');
       const cert = await hashingUtilities.generateCertificateHash(userId, nft);
       setCertHash(cert);
+      console.log('Certificate Hash:', cert);
 
-      // Call certify endpoint
+      // Call certify endpoint - the main endpoint that creates both NFT and Certificate transactions
+      console.log('Calling /api/blockchain/checkpoint-b/certify...');
       const response = await certifyAsset(assetId, nft, cert);
 
-      // Update transaction states
+      console.log('Certification response:', response);
+
+      // Update transaction states with both transactions
       setNftTransaction(response.nft_transaction);
       setCertTransaction(response.certificate_transaction);
       setStatus('success');
 
-      // Start polling for transaction status
+      // Start polling for both transaction statuses
+      console.log('Starting polling for both transactions...');
       startPolling(
         response.nft_transaction.transaction_id,
         response.certificate_transaction.transaction_id
@@ -150,6 +161,7 @@ const CertifyAssetForm = ({
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Certification failed';
+      console.error('Certification error:', errorMsg, err);
       setError(errorMsg);
       setStatus('failed');
       if (onError) onError(errorMsg);
@@ -187,7 +199,8 @@ const CertifyAssetForm = ({
   const pollTransactionWithUpdates = async (txId, type) => {
     return new Promise((resolve, reject) => {
       let attempts = 0;
-      const maxAttempts = 30;
+      const maxAttempts = 15; // Poll for ~30-45 seconds (15 attempts * 2-3 sec interval)
+      const pollInterval = 2500; // 2.5 seconds - matches backend confirmation time (1-2 sec typical)
 
       const poll = async () => {
         try {
@@ -200,36 +213,55 @@ const CertifyAssetForm = ({
             }
           );
 
-          if (!response.ok) throw new Error('Failed to get status');
+          if (!response.ok) {
+            throw new Error(`Status check failed: ${response.status}`);
+          }
 
           const status = await response.json();
+          console.log(`[${type.toUpperCase()}] Attempt ${attempts + 1}:`, status.status);
 
-          // Update state
+          // Update state with latest status
           if (type === 'nft') {
             setNftTransaction(status);
           } else {
             setCertTransaction(status);
           }
 
-          if (status.status === 'confirmed' || status.status === 'failed') {
+          // Check if transaction is finalized
+          if (status.status === 'confirmed' || status.status === 'finalized') {
+            console.log(`[${type.toUpperCase()}] CONFIRMED on block ${status.block_number}`);
             resolve(status);
             return;
           }
 
-          attempts++;
-          if (attempts >= maxAttempts) {
-            resolve(null); // Timeout, but don't reject
+          if (status.status === 'failed') {
+            console.error(`[${type.toUpperCase()}] Transaction FAILED`);
+            resolve(status); // Resolve with failed status, don't reject
             return;
           }
 
-          setTimeout(poll, 5000);
-        } catch (err) {
+          // Continue polling if still pending
           attempts++;
           if (attempts >= maxAttempts) {
+            console.warn(`[${type.toUpperCase()}] Polling timeout after ${attempts} attempts`);
+            resolve(null); // Timeout - return null without rejecting
+            return;
+          }
+
+          // Schedule next poll
+          setTimeout(poll, pollInterval);
+        } catch (err) {
+          console.error(`[${type.toUpperCase()}] Polling error:`, err);
+          attempts++;
+          
+          if (attempts >= maxAttempts) {
+            console.error(`[${type.toUpperCase()}] Max attempts reached, stopping poll`);
             reject(err);
             return;
           }
-          setTimeout(poll, 5000);
+          
+          // Retry after error
+          setTimeout(poll, pollInterval);
         }
       };
 
@@ -242,7 +274,11 @@ const CertifyAssetForm = ({
     setError(null);
 
     try {
-      const result = await retryTransaction(txId, type);
+      console.log(`Retrying transaction ${txId} (${type})...`);
+      const { retryTransaction } = useBlockchain();
+      const result = await retryTransaction(txId);
+      
+      console.log('Retry result:', result);
       
       if (type === 'nft') {
         setNftTransaction(result);
@@ -250,15 +286,12 @@ const CertifyAssetForm = ({
         setCertTransaction(result);
       }
 
-      // Restart polling
-      if (nftTransaction && certTransaction) {
-        startPolling(
-          type === 'nft' ? result.transaction_id : nftTransaction.transaction_id,
-          type === 'cert' ? result.transaction_id : certTransaction.transaction_id
-        );
-      }
+      // Restart polling for the retried transaction
+      console.log(`Restarting poll for ${type} transaction...`);
+      pollTransactionWithUpdates(result.transaction_id, type);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Retry failed';
+      console.error('Retry error:', errorMsg);
       setError(errorMsg);
       if (onError) onError(errorMsg);
     } finally {
@@ -267,8 +300,13 @@ const CertifyAssetForm = ({
   };
 
   const openBlockchainLink = (signature) => {
+    if (!signature) {
+      alert('Signature not available');
+      return;
+    }
     const url = blockchainUtils.getSolanaExplorerUrl(signature, 'devnet');
-    window.open(url, '_blank');
+    console.log('Opening explorer URL:', url);
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -302,7 +340,11 @@ const CertifyAssetForm = ({
         {/* Error Message */}
         {error && (
           <div className="error-message" role="alert">
-            ❌ {error}
+            <strong>❌ Error:</strong> {error}
+            {error.includes('401') && <p><small>Please login again</small></p>}
+            {error.includes('404') && <p><small>Asset not found or doesn't belong to you</small></p>}
+            {error.includes('400') && <p><small>Please ensure your wallet is connected</small></p>}
+            {error.includes('409') && <p><small>This asset is already certified</small></p>}
           </div>
         )}
 
@@ -322,7 +364,9 @@ const CertifyAssetForm = ({
         {/* Loading State */}
         {loading && status === 'loading' && (
           <div className="status-message processing">
-            ⏳ Certifying asset and minting NFT...
+            ⏳ <strong>Creating NFT and Certificate...</strong> Please wait while transactions are confirmed on blockchain
+            <br />
+            <small>(Do not close this page)</small>
           </div>
         )}
 
@@ -385,13 +429,13 @@ const CertifyAssetForm = ({
                 </div>
 
                 <div className="transaction-actions">
-                  {nftTransaction.status === 'confirmed' && (
+                  {nftTransaction.transaction_signature && (
                     <button
                       className="link-btn"
                       onClick={() => openBlockchainLink(nftTransaction.transaction_signature)}
-                      title="View on Solana Explorer"
+                      title="View transaction on Solana DevNet Explorer"
                     >
-                      🔗 View on Blockchain
+                      🔗 View on Blockchain {nftTransaction.status === 'pending' && '(pending)'}
                     </button>
                   )}
 
@@ -401,7 +445,7 @@ const CertifyAssetForm = ({
                       onClick={() => handleRetry(nftTransaction.transaction_id, 'nft')}
                       disabled={loading}
                     >
-                      🔄 Retry
+                      🔄 Retry Transaction
                     </button>
                   )}
                 </div>
@@ -462,13 +506,13 @@ const CertifyAssetForm = ({
                 </div>
 
                 <div className="transaction-actions">
-                  {certTransaction.status === 'confirmed' && (
+                  {certTransaction.transaction_signature && (
                     <button
                       className="link-btn"
                       onClick={() => openBlockchainLink(certTransaction.transaction_signature)}
-                      title="View on Solana Explorer"
+                      title="View transaction on Solana DevNet Explorer"
                     >
-                      🔗 View on Blockchain
+                      🔗 View on Blockchain {certTransaction.status === 'pending' && '(pending)'}
                     </button>
                   )}
 
@@ -478,7 +522,7 @@ const CertifyAssetForm = ({
                       onClick={() => handleRetry(certTransaction.transaction_id, 'cert')}
                       disabled={loading}
                     >
-                      🔄 Retry
+                      🔄 Retry Transaction
                     </button>
                   )}
                 </div>
@@ -487,16 +531,26 @@ const CertifyAssetForm = ({
           </div>
         )}
 
+        {/* Partial Failed Warning */}
+        {status === 'partial_failed' && (
+          <div className="warning-message">
+            ⚠️ One or more transactions failed. Please review the status below and retry if needed.
+          </div>
+        )}
+
         {/* Success Message */}
         {status === 'confirmed' && (
           <div className="success-message">
-            ✅ Asset certified successfully! Both transactions are confirmed on the blockchain.
+            ✅ <strong>CERTIFICATION COMPLETE!</strong><br/>
+            Both transactions are confirmed on the Solana blockchain. Your asset is now permanently recorded!
           </div>
         )}
 
         {(status === 'success' || status === 'polling_error') && (
           <div className="info-message">
-            ℹ️ Transactions submitted. Check back soon for blockchain confirmation.
+            ℹ️ <strong>Transactions submitted to Solana DevNet!</strong><br/>
+            📝 NFT Transaction: <strong>{nftTransaction?.status === 'confirmed' ? '✅ Confirmed' : nftTransaction?.status === 'pending' ? '⏳ Checking...' : nftTransaction?.status}</strong><br/>
+            📝 Certificate Transaction: <strong>{certTransaction?.status === 'confirmed' ? '✅ Confirmed' : certTransaction?.status === 'pending' ? '⏳ Checking...' : certTransaction?.status}</strong>
           </div>
         )}
 

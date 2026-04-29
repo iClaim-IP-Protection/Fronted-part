@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { assetsAPI, authAPI } from "../services/api";
-import { decryptWithProjectKey } from "../utils/aes256gcm";
+import { decryptWithProjectKey, encryptWithProjectKey } from "../utils/aes256gcm";
+import { generateProtectedIPCertificatePDF, downloadCertificatePDF, generateCertificateHash } from "../utils/certificateUtils";
+import { blockchainAPI } from "../services/blockchainService";
 import TransactionHistoryView from "../components/TransactionHistoryView";
 
-// IPFS Gateway URL - using public gateway
-const IPFS_GATEWAY = "https://ipfs.io/ipfs";
-// Alternative gateways:
-// const IPFS_GATEWAY = "https://ipfs.io/ipfs";
-// const IPFS_GATEWAY = "https://cloudflare-ipfs.com/ipfs";
+// IPFS Gateway URL - using local IPFS node
+const IPFS_GATEWAY = "http://localhost:8080/ipfs";
+// Fallback gateways if local node is unavailable:
+// const IPFS_GATEWAY_FALLBACK = "https://ipfs.io/ipfs";
+// const IPFS_GATEWAY_CLOUDFLARE = "https://cloudflare-ipfs.com/ipfs";
 
 export default function AssetInfo() {
   const { assetId } = useParams();
@@ -20,6 +22,8 @@ export default function AssetInfo() {
   const [error, setError] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [certificateLoading, setCertificateLoading] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
 
   // Helper: Convert Base64 to Uint8Array
   const base64ToUint8Array = (base64) => {
@@ -29,6 +33,55 @@ export default function AssetInfo() {
       bytes[i] = binary.charCodeAt(i);
     }
     return bytes;
+  };
+
+  // Helper: Convert Uint8Array to Base64
+  const uint8ArrayToBase64 = (uint8Array) => {
+    let binary = "";
+    for (let i = 0; i < uint8Array.byteLength; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    return btoa(binary);
+  };
+
+  // Test encryption/decryption round-trip
+  const testEncryptionRoundTrip = async () => {
+    try {
+      const testData = new TextEncoder().encode("Hello World! This is a test.");
+      console.log("=== ENCRYPTION ROUND-TRIP TEST ===");
+      console.log("Original data:", testData);
+      console.log("Original string:", new TextDecoder().decode(testData));
+
+      // Encrypt
+      const encrypted = encryptWithProjectKey(testData);
+      console.log("Encrypted bytes length:", encrypted.length);
+      console.log("First 20 bytes of encrypted:", Array.from(encrypted.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+
+      // Convert to Base64 (like in upload)
+      const encryptedBase64 = uint8ArrayToBase64(encrypted);
+      console.log("Encrypted Base64 length:", encryptedBase64.length);
+      console.log("First 100 chars Base64:", encryptedBase64.substring(0, 100));
+
+      // Convert back from Base64 (like in download)
+      const encryptedBytesFromBase64 = base64ToUint8Array(encryptedBase64);
+      console.log("Decrypted from Base64 length:", encryptedBytesFromBase64.length);
+
+      // Decrypt
+      const decrypted = decryptWithProjectKey(encryptedBytesFromBase64);
+      console.log("Decrypted bytes length:", decrypted.length);
+      console.log("Decrypted string:", new TextDecoder().decode(decrypted));
+
+      if (new TextDecoder().decode(decrypted) === "Hello World! This is a test.") {
+        console.log("✅ ROUND-TRIP TEST PASSED!");
+        alert("✅ Encryption/Decryption working correctly!");
+      } else {
+        console.error("❌ ROUND-TRIP TEST FAILED! Decrypted data doesn't match original!");
+        alert("❌ Encryption round-trip failed!");
+      }
+    } catch (err) {
+      console.error("Test error:", err);
+      alert("Error during round-trip test: " + err.message);
+    }
   };
 
   useEffect(() => {
@@ -49,7 +102,17 @@ export default function AssetInfo() {
 
       // Fetch asset details from backend
       const data = await assetsAPI.getAssetInfo(assetId);
+      console.log("🔍 Asset object:", data);
+      console.log("📋 Certification status - is_certified:", data?.is_certified, "certified:", data?.certified);
       setAsset(data);
+
+      // Fetch current user info
+      try {
+        const user = await authAPI.getCurrentUser();
+        setUserInfo(user);
+      } catch (userErr) {
+        console.warn('Could not fetch user info:', userErr);
+      }
     } catch (err) {
       console.error("Error fetching asset details:", err);
       if (err.message?.includes("401")) {
@@ -80,16 +143,54 @@ export default function AssetInfo() {
         throw new Error(`Failed to fetch from IPFS: ${response.status}`);
       }
 
+      // Try fetching as text (base64) first
       const text = await response.text();
+      console.log("IPFS Response received, length:", text.length);
+      console.log("First 100 chars of response:", text.substring(0, 100));
       
-      // 2. Convert Base64 to Uint8Array
-      const encryptedBytes = base64ToUint8Array(text);
+      if (!text || text.length === 0) {
+        throw new Error("IPFS returned empty content");
+      }
+      
+      // 2. Try to decode as base64 first
+      let encryptedBytes;
+      try {
+        encryptedBytes = base64ToUint8Array(text);
+        console.log("Decoded from Base64, bytes length:", encryptedBytes.length);
+      } catch (e) {
+        // If base64 decode fails, maybe it's binary data
+        console.log("Base64 decode failed, trying as binary...", e);
+        encryptedBytes = new TextEncoder().encode(text);
+      }
+      
+      console.log("Encrypted bytes length:", encryptedBytes.length);
+      
+      if (encryptedBytes.length === 0) {
+        throw new Error("No encrypted data received");
+      }
       
       // 3. Decrypt the file (using project's static key)
       const decryptedBytes = decryptWithProjectKey(encryptedBytes);
+      console.log("Decrypted bytes length:", decryptedBytes.length);
+      
+      // Check if decrypted data is a valid PDF
+      const pdfHeader = String.fromCharCode(...decryptedBytes.slice(0, 4));
+      console.log("First 4 bytes of decrypted file:", pdfHeader);
+      console.log("First 20 bytes hex:", Array.from(decryptedBytes.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+      
+      if (pdfHeader !== '%PDF') {
+        console.error("⚠️ INVALID PDF HEADER! Expected '%PDF', got:", pdfHeader);
+        console.error("This suggests the backend may be re-encrypting the data or using a different key.");
+        console.error("First 20 bytes should be: 25 50 44 46 ... but got:", Array.from(decryptedBytes.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+        console.error("Check backend code - is it re-encrypting or using a different key?");
+        alert("PDF decryption failed. Check console for details. Backend may be re-encrypting the data.");
+        return;
+      }
       
       // 4. Create blob and trigger download
       const blob = new Blob([decryptedBytes], { type: "application/pdf" });
+      console.log("Blob size:", blob.size);
+      
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -126,6 +227,73 @@ export default function AssetInfo() {
 
   const handleEdit = () => {
     navigate(`/edit-asset/${assetId}`);
+  };
+
+  const handleDownloadProtectedIPCertificate = async () => {
+    try {
+      // Check if asset is certified
+      console.log("🔐 Certificate button clicked");
+      console.log("   asset?.is_certified:", asset?.is_certified);
+      console.log("   asset?.certified:", asset?.certified);
+      console.log("   Condition (!asset?.is_certified && !asset?.certified):", !asset?.is_certified && !asset?.certified);
+      
+      if (!asset?.is_certified && !asset?.certified) {
+        alert("This asset has not been certified yet. Please certify the asset first.");
+        return;
+      }
+
+      setCertificateLoading(true);
+
+      // Fetch transaction data
+      let transactionData = null;
+      let certificateHash = null;
+
+      try {
+        const txData = await blockchainAPI.getAssetTransactions(assetId);
+        transactionData = txData?.transactions?.[0];
+
+        // Generate certificate hash (same as during NFT minting)
+        if (userInfo && userInfo.id) {
+          certificateHash = generateCertificateHash(
+            assetId,
+            userInfo.username || userInfo.email,
+            asset.date_certified || asset.date_created
+          );
+        }
+      } catch (txErr) {
+        console.warn('Could not fetch transaction data:', txErr);
+      }
+
+      // Prepare certificate data
+      const submitterName = userInfo?.first_name && userInfo?.last_name 
+        ? `${userInfo.first_name} ${userInfo.last_name}`
+        : userInfo?.username || userInfo?.email || 'Unknown User';
+
+      const certificateData = {
+        assetTitle: asset.asset_title || asset.title || 'Unknown Asset',
+        submitterName: submitterName,
+        uploadedDate: asset.date_created ? new Date(asset.date_created).toLocaleString() : 'N/A',
+        certifiedDate: asset.date_certified ? new Date(asset.date_certified).toLocaleString() : 'N/A',
+        ipfsHash: asset.ipfs_hash || 'N/A',
+        nftHash: transactionData?.nft_hash || 'N/A',
+        transactionId: transactionData?.signature || 'N/A',
+        blockNumber: transactionData?.block_number || 'N/A',
+        walletAddress: userInfo?.wallet_address || userInfo?.solana_wallet || 'N/A',
+        certificateId: certificateHash || 'N/A',
+      };
+
+      // Generate PDF
+      const pdf = generateProtectedIPCertificatePDF(certificateData);
+      const filename = `protected-ip-certificate-${asset.asset_id || assetId}-${new Date().getTime()}.pdf`;
+      downloadCertificatePDF(pdf, filename);
+
+      console.log('✅ Protected IP Certificate downloaded successfully');
+    } catch (err) {
+      console.error('Error generating Protected IP Certificate:', err);
+      alert('Failed to generate Protected IP Certificate: ' + err.message);
+    } finally {
+      setCertificateLoading(false);
+    }
   };
 
   if (loading) {
@@ -263,7 +431,7 @@ export default function AssetInfo() {
             </div>
 
             {/* File Download Section */}
-            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mb-8">
+            {/* <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mb-8">
               <h3 className="text-sm font-semibold text-blue-700 uppercase mb-4">
                 Original File
               </h3>
@@ -280,6 +448,37 @@ export default function AssetInfo() {
                 }`}
               >
                 {fileLoading ? "Downloading..." : "Download File"}
+              </button>
+
+              {/* Test Encryption Button (for debugging) */}
+              {/* <button
+                onClick={testEncryptionRoundTrip}
+                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+              >
+                🧪 Test Encryption
+              </button>
+            </div> */}
+
+            {/* Protected IP Certificate Section */}
+            <div className="bg-amber-50 border border-amber-200 p-6 rounded-lg mb-8">
+              <h3 className="text-sm font-semibold text-amber-700 uppercase mb-4">
+                📜 Protected IP Certificate
+              </h3>
+              <p className="text-sm text-amber-600 mb-4">
+                {asset?.is_certified || asset?.certified 
+                  ? 'Download the certificate of your protected intellectual property with blockchain verification details.'
+                  : 'This asset must be certified (NFT minted) before a certificate can be generated.'}
+              </p>
+              <button
+                onClick={handleDownloadProtectedIPCertificate}
+                disabled={certificateLoading || (!asset?.is_certified && !asset?.certified)}
+                className={`w-full py-3 rounded-lg transition font-medium flex items-center justify-center gap-2 ${
+                  certificateLoading || (!asset?.is_certified && !asset?.certified)
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-amber-600 text-white hover:bg-amber-700"
+                }`}
+              >
+                {certificateLoading ? "Generating Certificate..." : "Download Certificate"}
               </button>
             </div>
 

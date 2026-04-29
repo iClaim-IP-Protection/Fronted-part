@@ -113,7 +113,7 @@ function RegisterIP() {
       const fileUint8Array = new Uint8Array(fileArrayBuffer);
 
       // 2. Encrypt the file with AES-256-GCM (includes IV + authTag)
-      const encryptedBytes = await encryptWithProjectKey(fileUint8Array);
+      const encryptedBytes = encryptWithProjectKey(fileUint8Array);
       console.log("File encrypted with AES-256-GCM");
 
       // 3. Convert encrypted bytes to Base64 for transmission

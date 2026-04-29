@@ -59,15 +59,15 @@ function Dashboard() {
     <div className="flex h-screen bg-gray-50">
 
       {/* Sidebar */}
-      <div className="w-1/5 bg-blue-900 text-white p-6 overflow-auto">
+      <div className="w-1/5 bg-white text-black p-6 overflow-auto">
         <h1 className="text-2xl font-bold mb-10">iClaim</h1>
         {dashboardData && (
           <div className="mb-8 pb-6 border-b border-blue-700">
-            <p className="text-sm text-blue-200">Logged in as</p>
-            <p className="text-lg font-semibold text-white">{dashboardData.username}</p>
+            <p className="text-sm text-black-200">Logged in as</p>
+            <p className="text-lg font-semibold text-black">{dashboardData.username}</p>
             <div className="mt-3 flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-              <span className="text-xs text-blue-100">
+              <span className="text-xs text-black-100">
                 {isConnected ? 'Wallet Connected' : 'No Wallet'}
               </span>
             </div>

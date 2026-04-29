@@ -147,6 +147,14 @@ function MyAssets() {
                   >
                     View Details
                   </button>
+                  {(asset.certified || asset.is_certified) && (
+                    <button
+                      onClick={() => navigate(`/certifications/${asset.asset_id || asset.id}`)}
+                      className="w-full bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition shadow"
+                    >
+                      📜 View Certificate
+                    </button>
+                  )}
                   {!(asset.certified || asset.is_certified) && (
                     <button
                       onClick={() => navigate(`/assets/${asset.asset_id || asset.id}/certify`)}

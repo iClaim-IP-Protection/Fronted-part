@@ -14,6 +14,7 @@ import AssetInfo from "./pages/AssetInfo";
 import EditAsset from "./pages/EditAsset";
 import AssetCertification from "./pages/AssetCertification";
 import AssetConfirmation from "./pages/AssetConfirmation";
+import CertificationDetails from "./pages/CertificationDetails";
 import MainLayout from "./layouts/MainLayout";
 
 
@@ -52,6 +53,8 @@ function App() {
         <Route path="/assets/:assetId/certify" element={<MainLayout><AssetCertification/></MainLayout>}/>
 
         <Route path="/assets/:assetId/confirmation" element={<MainLayout><AssetConfirmation/></MainLayout>}/>
+
+        <Route path="/certifications/:assetId" element={<MainLayout><CertificationDetails/></MainLayout>}/>
 
         <Route path="/assets" element={<MainLayout><MyAssets/></MainLayout>}/>
 
