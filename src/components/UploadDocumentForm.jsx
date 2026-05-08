@@ -150,26 +150,26 @@ const UploadDocumentForm = ({ assetId, onSuccess, onError }) => {
         {/* Error Message */}
         {error && (
           <div className="error-message" role="alert">
-            ❌ {error}
+            {error}
           </div>
         )}
 
         {/* Status Messages */}
         {status === 'uploading' && (
           <div className="status-message uploading">
-            ⏳ Uploading document...
+            Uploading document...
           </div>
         )}
 
         {status === 'generating-hash' && (
           <div className="status-message processing">
-            🔄 Generating document hash...
+            Generating document hash...
           </div>
         )}
 
         {status === 'recording' && (
           <div className="status-message processing">
-            ⏳ Recording proof of originality...
+            Recording proof of originality...
           </div>
         )}
 
@@ -186,7 +186,7 @@ const UploadDocumentForm = ({ assetId, onSuccess, onError }) => {
                 aria-label="Copy document hash to clipboard"
                 title="Copy hash"
               >
-                📋 Copy
+                Copy
               </button>
             </div>
           </div>
@@ -195,7 +195,7 @@ const UploadDocumentForm = ({ assetId, onSuccess, onError }) => {
         {/* Success Section */}
         {status === 'confirmed' && (
           <div className="success-section">
-            <div className="success-icon">✅</div>
+            <div className="success-icon"> </div>
             <h3>Document Uploaded Successfully!</h3>
             
             <div className="success-details">
@@ -208,14 +208,14 @@ const UploadDocumentForm = ({ assetId, onSuccess, onError }) => {
                   aria-label="Copy document hash"
                   title="Copy hash"
                 >
-                  📋
+                  Copy
                 </button>
               </div>
 
               <div className="detail-item">
                 <span className="detail-label">Status:</span>
                 <span className="detail-value status-confirmed">
-                  ✅ Proof of Originality Recorded
+                  Proof of Originality Recorded
                 </span>
               </div>
 
@@ -245,7 +245,7 @@ const UploadDocumentForm = ({ assetId, onSuccess, onError }) => {
                   disabled={!file || loading}
                   aria-label="Generate document hash"
                 >
-                  {loading ? '⏳ Generating...' : '🔐 Generate Hash'}
+                  {loading ? 'Generating...' : 'Generate Hash'}
                 </button>
               )}
 
@@ -256,7 +256,7 @@ const UploadDocumentForm = ({ assetId, onSuccess, onError }) => {
                   disabled={loading}
                   aria-label="Record proof of originality"
                 >
-                  {loading ? '⏳ Recording...' : '📝 Record Proof of Originality'}
+                  {loading ? 'Recording...' : 'Record Proof of Originality'}
                 </button>
               )}
 
@@ -266,7 +266,7 @@ const UploadDocumentForm = ({ assetId, onSuccess, onError }) => {
                 disabled={loading}
                 aria-label="Clear and start over"
               >
-                🔄 Reset
+                Reset
               </button>
             </>
           ) : (
@@ -276,14 +276,14 @@ const UploadDocumentForm = ({ assetId, onSuccess, onError }) => {
                 disabled
                 aria-label="Document upload complete"
               >
-                ✅ Upload Complete
+                Upload Complete
               </button>
               <button
                 className="btn btn-secondary"
                 onClick={resetForm}
                 aria-label="Upload another document"
               >
-                📄 Upload Another
+                Upload Another
               </button>
             </>
           )}

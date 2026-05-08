@@ -151,7 +151,7 @@ Each hash is a SHA-256 digest that uniquely identifies the asset data.
       <div className="max-w-4xl mx-auto">
         {/* Success Banner */}
         <div className="mb-8 p-6 bg-green-50 border-l-4 border-green-500 rounded-xl">
-          <h1 className="text-3xl font-bold text-green-600 mb-2">✓ Asset Certified Successfully</h1>
+          <h1 className="text-3xl font-bold text-green-600 mb-2">Asset Certified Successfully</h1>
           <p className="text-green-700">Your asset has been certified and saved to the database.</p>
         </div>
 
@@ -277,13 +277,13 @@ Each hash is a SHA-256 digest that uniquely identifies the asset data.
               disabled={!certification}
               className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              📥 Download Certificate
+              Download Certificate
             </button>
             <button
               onClick={() => navigate("/assets")}
               className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition font-semibold"
             >
-              ✓ Back to My Assets
+              Back to My Assets
             </button>
           </div>
         </div>

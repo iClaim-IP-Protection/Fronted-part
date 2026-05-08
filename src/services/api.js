@@ -169,6 +169,10 @@ export const assetsAPI = {
     return await apiCall(`/api/ipfs/${assetId}`, { method: 'GET' });
   },
 
+  getAssetByHash: async (certificateHash) => {
+    return await apiCall(`/api/ipfs/hash/${certificateHash}`, { method: 'GET' });
+  },
+
   updateAsset: async (assetId, updateData) => {
     const formData = new FormData();
     if (updateData.title) formData.append('title', updateData.title);

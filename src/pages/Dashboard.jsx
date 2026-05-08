@@ -204,7 +204,7 @@ function Dashboard() {
                         <p className="text-blue-100 font-semibold text-sm">Total Assets</p>
                         <p className="text-4xl font-bold mt-2">{dashboardData.asset_count}</p>
                       </div>
-                      <div className="text-5xl opacity-20">📦</div>
+                      <div className="text-5xl opacity-20"> </div>
                     </div>
                   </div>
 
@@ -214,7 +214,7 @@ function Dashboard() {
                         <p className="text-green-100 font-semibold text-sm">IP Registrations</p>
                         <p className="text-4xl font-bold mt-2">{dashboardData.ip_count}</p>
                       </div>
-                      <div className="text-5xl opacity-20">💡</div>
+                      <div className="text-5xl opacity-20"> </div>
                     </div>
                   </div>
 
@@ -224,7 +224,7 @@ function Dashboard() {
                         <p className="text-purple-100 font-semibold text-sm">Certifications</p>
                         <p className="text-4xl font-bold mt-2">{dashboardData.certifications_count}</p>
                       </div>
-                      <div className="text-5xl opacity-20">🏆</div>
+                      <div className="text-5xl opacity-20"> </div>
                     </div>
                   </div>
                 </div>
@@ -237,19 +237,19 @@ function Dashboard() {
                       to="/assets"
                       className="bg-white hover:bg-blue-50 border border-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg text-center transition"
                     >
-                      📦 View Assets
+                      View Assets
                     </Link>
                     <Link
                       to="/registerIp"
                       className="bg-white hover:bg-green-50 border border-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg text-center transition"
                     >
-                      ➕ Register IP
+                      Register IP
                     </Link>
                     <Link
                       to="/profile"
                       className="bg-white hover:bg-purple-50 border border-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg text-center transition"
                     >
-                      👤 Edit Profile
+                      Edit Profile
                     </Link>
                   </div>
                 </div>

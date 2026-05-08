@@ -85,9 +85,6 @@ export default function CertificateDisplay({
           <p className="text-gray-600 text-sm mb-4">
             Generated on {new Date().toLocaleString()}
           </p>
-          <p className="text-green-600 font-bold text-lg">
-            ✓ Blockchain Verified
-          </p>
         </div>
       </div>
     </div>

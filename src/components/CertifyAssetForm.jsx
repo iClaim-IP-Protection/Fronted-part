@@ -312,7 +312,7 @@ const CertifyAssetForm = ({
   return (
     <div className="certify-asset-form">
       <div className="form-card">
-        <h2>🚀 Mint NFT & Certificate</h2>
+        <h2>Mint NFT & Certificate</h2>
         <p className="form-description">
           Finalize your asset certification by creating NFT and Certificate transactions on Solana blockchain
         </p>
@@ -340,7 +340,7 @@ const CertifyAssetForm = ({
         {/* Error Message */}
         {error && (
           <div className="error-message" role="alert">
-            <strong>❌ Error:</strong> {error}
+            <strong>Error:</strong> {error}
             {error.includes('401') && <p><small>Please login again</small></p>}
             {error.includes('404') && <p><small>Asset not found or doesn't belong to you</small></p>}
             {error.includes('400') && <p><small>Please ensure your wallet is connected</small></p>}
@@ -351,20 +351,20 @@ const CertifyAssetForm = ({
         {/* Prerequisites Check */}
         {!walletAddress && status === 'idle' && (
           <div className="warning-message">
-            ⚠️ Please connect your Phantom wallet first
+            Please connect your Phantom wallet first
           </div>
         )}
 
         {!asset?.document_hash && status === 'idle' && (
           <div className="warning-message">
-            ⚠️ Asset does not have a document hash. Please ensure the asset was uploaded correctly.
+            Asset does not have a document hash. Please ensure the asset was uploaded correctly.
           </div>
         )}
 
         {/* Loading State */}
         {loading && status === 'loading' && (
           <div className="status-message processing">
-            ⏳ <strong>Creating NFT and Certificate...</strong> Please wait while transactions are confirmed on blockchain
+            <strong>Creating NFT and Certificate...</strong> Please wait while transactions are confirmed on blockchain
             <br />
             <small>(Do not close this page)</small>
           </div>
@@ -400,7 +400,7 @@ const CertifyAssetForm = ({
                       title="Copy signature"
                       aria-label="Copy transaction signature"
                     >
-                      📋
+                      Copy
                     </button>
                   </div>
 
@@ -435,7 +435,7 @@ const CertifyAssetForm = ({
                       onClick={() => openBlockchainLink(nftTransaction.transaction_signature)}
                       title="View transaction on Solana DevNet Explorer"
                     >
-                      🔗 View on Blockchain {nftTransaction.status === 'pending' && '(pending)'}
+                      View on Blockchain {nftTransaction.status === 'pending' && '(pending)'}
                     </button>
                   )}
 
@@ -445,7 +445,7 @@ const CertifyAssetForm = ({
                       onClick={() => handleRetry(nftTransaction.transaction_id, 'nft')}
                       disabled={loading}
                     >
-                      🔄 Retry Transaction
+                      Retry Transaction
                     </button>
                   )}
                 </div>
@@ -477,7 +477,7 @@ const CertifyAssetForm = ({
                       title="Copy signature"
                       aria-label="Copy transaction signature"
                     >
-                      📋
+                      Copy
                     </button>
                   </div>
 
@@ -512,7 +512,7 @@ const CertifyAssetForm = ({
                       onClick={() => openBlockchainLink(certTransaction.transaction_signature)}
                       title="View transaction on Solana DevNet Explorer"
                     >
-                      🔗 View on Blockchain {certTransaction.status === 'pending' && '(pending)'}
+                      View on Blockchain {certTransaction.status === 'pending' && '(pending)'}
                     </button>
                   )}
 
@@ -522,7 +522,7 @@ const CertifyAssetForm = ({
                       onClick={() => handleRetry(certTransaction.transaction_id, 'cert')}
                       disabled={loading}
                     >
-                      🔄 Retry Transaction
+                      Retry Transaction
                     </button>
                   )}
                 </div>
@@ -534,23 +534,23 @@ const CertifyAssetForm = ({
         {/* Partial Failed Warning */}
         {status === 'partial_failed' && (
           <div className="warning-message">
-            ⚠️ One or more transactions failed. Please review the status below and retry if needed.
+            One or more transactions failed. Please review the status below and retry if needed.
           </div>
         )}
 
         {/* Success Message */}
         {status === 'confirmed' && (
           <div className="success-message">
-            ✅ <strong>CERTIFICATION COMPLETE!</strong><br/>
+            <strong>CERTIFICATION COMPLETE!</strong><br/>
             Both transactions are confirmed on the Solana blockchain. Your asset is now permanently recorded!
           </div>
         )}
 
         {(status === 'success' || status === 'polling_error') && (
           <div className="info-message">
-            ℹ️ <strong>Transactions submitted to Solana DevNet!</strong><br/>
-            📝 NFT Transaction: <strong>{nftTransaction?.status === 'confirmed' ? '✅ Confirmed' : nftTransaction?.status === 'pending' ? '⏳ Checking...' : nftTransaction?.status}</strong><br/>
-            📝 Certificate Transaction: <strong>{certTransaction?.status === 'confirmed' ? '✅ Confirmed' : certTransaction?.status === 'pending' ? '⏳ Checking...' : certTransaction?.status}</strong>
+            <strong>Transactions submitted to Solana DevNet!</strong><br/>
+            NFT Transaction: <strong>{nftTransaction?.status === 'confirmed' ? 'Confirmed' : nftTransaction?.status === 'pending' ? 'Checking...' : nftTransaction?.status}</strong><br/>
+            Certificate Transaction: <strong>{certTransaction?.status === 'confirmed' ? 'Confirmed' : certTransaction?.status === 'pending' ? 'Checking...' : certTransaction?.status}</strong>
           </div>
         )}
 
@@ -583,7 +583,7 @@ const CertifyAssetForm = ({
             disabled={!canCertify() || loading}
             aria-label="Certify asset"
           >
-            {loading ? '⏳ Processing...' : '🚀 Certify Asset & Mint NFT'}
+            {loading ? 'Processing...' : 'Certify Asset & Mint NFT'}
           </button>
         )}
       </div>

@@ -126,7 +126,7 @@ function MyAssets() {
                     <h2 className="text-xl font-bold text-blue-600 flex-1">{asset.title}</h2>
                     {asset.certified || asset.is_certified ? (
                       <span className="ml-2 bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
-                        ✓ Certified
+                        Certified
                       </span>
                     ) : (
                       <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">
@@ -152,7 +152,7 @@ function MyAssets() {
                       onClick={() => navigate(`/certifications/${asset.asset_id || asset.id}`)}
                       className="w-full bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition shadow"
                     >
-                      📜 View Certificate
+                      View Certificate
                     </button>
                   )}
                   {!(asset.certified || asset.is_certified) && (

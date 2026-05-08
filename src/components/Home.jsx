@@ -12,25 +12,38 @@ function Home() {
 
       {/* Main content */}
       <div className="flex-1 flex items-center justify-center bg-gradient-to-r from-blue-100 via-blue-200 to-blue-300">
-        <div className="flex gap-16">
-          {/* Register Button */}
-          <button
-            onClick={() => navigate("/signup")}
-            className="px-12 py-5 text-lg font-semibold text-white rounded-xl
-                       bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700
-                       shadow-lg hover:scale-105 transform transition duration-300 ease-in-out"
-          >
-            Register User
-          </button>
+        <div className="flex flex-col gap-8 items-center">
+          {/* Top Row - User Actions */}
+          <div className="flex gap-16">
+            {/* Register Button */}
+            <button
+              onClick={() => navigate("/signup")}
+              className="px-12 py-5 text-lg font-semibold text-white rounded-xl
+                         bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700
+                         shadow-lg hover:scale-105 transform transition duration-300 ease-in-out"
+            >
+              Register User
+            </button>
 
-          {/* Login Button */}
+            {/* Login Button */}
+            <button
+              onClick={() => navigate("/login")}
+              className="px-12 py-5 text-lg font-semibold text-white rounded-xl
+                         bg-gradient-to-r from-cyan-500 via-cyan-600 to-cyan-700
+                         shadow-lg hover:scale-105 transform transition duration-300 ease-in-out"
+            >
+              Login User
+            </button>
+          </div>
+
+          {/* Bottom Row - Lookup Button */}
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/lookup-certificate")}
             className="px-12 py-5 text-lg font-semibold text-white rounded-xl
-                       bg-gradient-to-r from-cyan-500 via-cyan-600 to-cyan-700
+                       bg-gradient-to-r from-green-500 via-green-600 to-green-700
                        shadow-lg hover:scale-105 transform transition duration-300 ease-in-out"
           >
-            Login User
+            Lookup Intellectual Property
           </button>
         </div>
       </div>

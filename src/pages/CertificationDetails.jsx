@@ -115,7 +115,7 @@ export default function CertificationDetails() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200 p-6 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
-          <p className="text-xl text-red-600 mb-4">⚠️ {error}</p>
+          <p className="text-xl text-red-600 mb-4">{error}</p>
           <button
             onClick={() => navigate('/assets')}
             className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
@@ -166,13 +166,13 @@ export default function CertificationDetails() {
               onClick={handleDownloadCertificate}
               className="flex-1 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition font-semibold flex items-center justify-center gap-2"
             >
-              📥 Download as PDF
+              Download as PDF
             </button>
             <button
               onClick={() => navigate(`/assets/${assetId}`)}
               className="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition font-semibold flex items-center justify-center gap-2"
             >
-              ℹ️ View Asset Details
+              View Asset Details
             </button>
           </div>
         </div>

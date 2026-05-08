@@ -91,7 +91,7 @@ export default function AssetCertification() {
         {/* Error Message */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
-            <p className="text-red-700 font-semibold">⚠️ Error</p>
+            <p className="text-red-700 font-semibold">Error</p>
             <p className="text-red-600 mt-1">{error}</p>
           </div>
         )}
@@ -121,7 +121,7 @@ export default function AssetCertification() {
         {/* Asset Not Found */}
         {!asset && !error && (
           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded mb-8">
-            <p className="text-yellow-700 font-semibold">⚠️ Asset Not Found</p>
+            <p className="text-yellow-700 font-semibold">Asset Not Found</p>
             <p className="text-yellow-600 mt-2">The asset you're trying to certify could not be found.</p>
             <button
               onClick={() => navigate("/my-assets")}
@@ -135,7 +135,7 @@ export default function AssetCertification() {
         {/* No Document Hash Warning */}
         {asset && !asset.document_hash && (
           <div className="bg-orange-50 border-l-4 border-orange-500 p-6 rounded mb-8">
-            <p className="text-orange-700 font-semibold">⚠️ Document Not Uploaded</p>
+            <p className="text-orange-700 font-semibold">Document Not Uploaded</p>
             <p className="text-orange-600 mt-2">
               This asset has not been registered with a document. Please return to My Assets and upload a document first.
             </p>

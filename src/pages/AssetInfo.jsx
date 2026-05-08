@@ -72,11 +72,11 @@ export default function AssetInfo() {
       console.log("Decrypted string:", new TextDecoder().decode(decrypted));
 
       if (new TextDecoder().decode(decrypted) === "Hello World! This is a test.") {
-        console.log("✅ ROUND-TRIP TEST PASSED!");
-        alert("✅ Encryption/Decryption working correctly!");
+        console.log("ROUND-TRIP TEST PASSED!");
+        alert("Encryption/Decryption working correctly!");
       } else {
-        console.error("❌ ROUND-TRIP TEST FAILED! Decrypted data doesn't match original!");
-        alert("❌ Encryption round-trip failed!");
+        console.error("ROUND-TRIP TEST FAILED! Decrypted data doesn't match original!");
+        alert("Encryption round-trip failed!");
       }
     } catch (err) {
       console.error("Test error:", err);
@@ -102,8 +102,8 @@ export default function AssetInfo() {
 
       // Fetch asset details from backend
       const data = await assetsAPI.getAssetInfo(assetId);
-      console.log("🔍 Asset object:", data);
-      console.log("📋 Certification status - is_certified:", data?.is_certified, "certified:", data?.certified);
+      console.log("Asset object:", data);
+      console.log("Certification status - is_certified:", data?.is_certified, "certified:", data?.certified);
       setAsset(data);
 
       // Fetch current user info
@@ -179,7 +179,7 @@ export default function AssetInfo() {
       console.log("First 20 bytes hex:", Array.from(decryptedBytes.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
       
       if (pdfHeader !== '%PDF') {
-        console.error("⚠️ INVALID PDF HEADER! Expected '%PDF', got:", pdfHeader);
+        console.error("INVALID PDF HEADER! Expected '%PDF', got:", pdfHeader);
         console.error("This suggests the backend may be re-encrypting the data or using a different key.");
         console.error("First 20 bytes should be: 25 50 44 46 ... but got:", Array.from(decryptedBytes.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
         console.error("Check backend code - is it re-encrypting or using a different key?");
@@ -231,7 +231,7 @@ export default function AssetInfo() {
 
   const handleDownloadProtectedIPCertificate = async () => {
     try {
-      console.log("🔐 Certificate button clicked");
+      console.log("Certificate button clicked");
       
       setCertificateLoading(true);
 
@@ -240,7 +240,7 @@ export default function AssetInfo() {
 
       try {
         const txData = await blockchainAPI.getAssetTransactions(assetId);
-        console.log("📦 Transaction data:", txData);
+        console.log("Transaction data:", txData);
         transactionData = txData?.transactions?.[0];
       } catch (txErr) {
         console.warn('Could not fetch transaction data:', txErr);
@@ -274,15 +274,15 @@ export default function AssetInfo() {
         certificateId: transactionData?.certificate_hash || 'N/A',
       };
 
-      console.log("📄 Certificate data:", certificateData);
+      console.log("Certificate data:", certificateData);
 
       // Generate PDF
       const pdf = generateProtectedIPCertificatePDF(certificateData);
       const filename = `protected-ip-certificate-${asset.asset_id || assetId}-${new Date().getTime()}.pdf`;
       downloadCertificatePDF(pdf, filename);
 
-      console.log('✅ Protected IP Certificate downloaded successfully');
-      alert('✅ Protected IP Certificate downloaded successfully!');
+      console.log('Protected IP Certificate downloaded successfully');
+      alert('Protected IP Certificate downloaded successfully!');
     } catch (err) {
       console.error('Error generating Protected IP Certificate:', err);
       alert('Failed to generate Protected IP Certificate: ' + err.message);
@@ -457,7 +457,7 @@ export default function AssetInfo() {
             {/* Protected IP Certificate Section */}
             <div className="bg-amber-50 border border-amber-200 p-6 rounded-lg mb-8">
               <h3 className="text-sm font-semibold text-amber-700 uppercase mb-4">
-                📜 Protected IP Certificate
+                Protected IP Certificate
               </h3>
               <p className="text-sm text-amber-600 mb-4">
                 Download the certificate of your protected intellectual property with blockchain verification details.

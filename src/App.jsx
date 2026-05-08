@@ -15,6 +15,7 @@ import EditAsset from "./pages/EditAsset";
 import AssetCertification from "./pages/AssetCertification";
 import AssetConfirmation from "./pages/AssetConfirmation";
 import CertificationDetails from "./pages/CertificationDetails";
+import CertificateLookup from "./pages/CertificateLookup";
 import MainLayout from "./layouts/MainLayout";
 
 
@@ -36,6 +37,9 @@ function App() {
 
         {/* Home (MainPage) */}
         <Route path="/home" element={<Home/>} />
+
+        {/* Lookup Certificate */}
+        <Route path="/lookup-certificate" element={<CertificateLookup/>} />
           
         {/* Dashboard */}
         

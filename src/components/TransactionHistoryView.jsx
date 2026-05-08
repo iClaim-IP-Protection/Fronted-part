@@ -86,7 +86,7 @@ const TransactionHistoryView = ({ assetId }) => {
     return (
       <div className="transaction-history-view">
         <div className="loading">
-          <span className="spinner">⏳</span> Loading transactions...
+          <span className="spinner"> </span> Loading transactions...
         </div>
       </div>
     );
@@ -103,13 +103,13 @@ const TransactionHistoryView = ({ assetId }) => {
           title="Refresh transactions"
           aria-label="Refresh transaction history"
         >
-          🔄 Refresh
+          Refresh
         </button>
       </div>
 
       {error && (
         <div className="error-message" role="alert">
-          ❌ {error}
+          {error}
         </div>
       )}
 
@@ -145,15 +145,15 @@ const TransactionHistoryView = ({ assetId }) => {
                     <span className="detail-label">Signature:</span>
                     <div className="detail-value-group">
                       <code className="detail-value signature">
-                        {blockchainUtils.formatSignature(tx.transaction_signature)}
+                        {blockchainUtils.formatSignature(tx.signature)}
                       </code>
                       <button
                         className="small-btn copy-btn"
-                        onClick={() => blockchainUtils.copyToClipboard(tx.transaction_signature)}
+                        onClick={() => blockchainUtils.copyToClipboard(tx.signature)}
                         title="Copy full signature"
                         aria-label="Copy transaction signature"
                       >
-                        📋
+                        Copy
                       </button>
                     </div>
                   </div>
@@ -200,7 +200,7 @@ const TransactionHistoryView = ({ assetId }) => {
                         title="Copy data hash"
                         aria-label="Copy data hash"
                       >
-                        📋
+                        Copy
                       </button>
                     </div>
                   </div>
@@ -212,14 +212,14 @@ const TransactionHistoryView = ({ assetId }) => {
                 <div className="transaction-actions">
                   {tx.status?.toLowerCase() === 'confirmed' && (
                     <a
-                      href={blockchainUtils.getSolanaExplorerUrl(tx.transaction_signature, 'devnet')}
+                      href={blockchainUtils.getSolanaExplorerUrl(tx.signature, 'devnet')}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="action-btn explorer-btn"
                       title="View on Solana Explorer"
                       aria-label="View transaction on Solana Explorer"
                     >
-                      🔗 View on Explorer
+                      View on Explorer
                     </a>
                   )}
 
@@ -231,40 +231,19 @@ const TransactionHistoryView = ({ assetId }) => {
                       title="Retry failed transaction"
                       aria-label="Retry failed transaction"
                     >
-                      {retrying === tx.transaction_id ? '⏳ Retrying...' : '🔄 Retry'}
+                      {retrying === tx.transaction_id ? 'Retrying...' : 'Retry'}
                     </button>
                   )}
 
                   {tx.status?.toLowerCase() === 'pending' && (
                     <span className="pending-hint">
-                      ⏳ Awaiting blockchain confirmation...
+                      Awaiting blockchain confirmation...
                     </span>
                   )}
                 </div>
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Legend */}
-      {transactions.length > 0 && (
-        <div className="legend">
-          <p className="legend-title">Status Legend:</p>
-          <div className="legend-items">
-            <div className="legend-item">
-              <span className="legend-icon confirmed">✅</span>
-              <span>Confirmed on blockchain</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-icon pending">⏳</span>
-              <span>Pending confirmation</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-icon failed">❌</span>
-              <span>Failed (can be retried)</span>
-            </div>
-          </div>
         </div>
       )}
     </div>
